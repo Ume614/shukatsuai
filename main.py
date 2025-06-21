@@ -772,25 +772,25 @@ def integrated_workflow_content():
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
-                
-                # 面接重要ポイント
-                if "key_interview_points" in required_personality:
-                    st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
-                    st.markdown('<h4 style="color: #e74c3c; margin-bottom: 0.8rem;">❓ 面接で重視されるポイント</h4>', unsafe_allow_html=True)
-                    for i, point in enumerate(required_personality["key_interview_points"], 1):
-                        st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fadbd8; border-left: 3px solid #e74c3c; border-radius: 4px;"><strong>{i}.</strong> {point}</div>', unsafe_allow_html=True)
-                
-                # 成功要因
-                if "success_factors" in required_personality:
-                    st.markdown('<div style="margin-top: 1rem;"></div>', unsafe_allow_html=True)
-                    st.markdown('<h4 style="color: #f39c12; margin-bottom: 0.8rem;">🏆 この企業で成功する要因</h4>', unsafe_allow_html=True)
-                    for factor in required_personality["success_factors"]:
-                        st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fdeaa7; border-left: 3px solid #f39c12; border-radius: 4px;">⭐ {factor}</div>', unsafe_allow_html=True)
-                
-                # その他の詳細情報があれば表示
-                if isinstance(required_personality, str) and not required_personality.get("required_personality"):
-                    # テキスト形式の場合
-                    st.write(required_personality)
+            
+            # 面接重要ポイント
+            if "key_interview_points" in required_personality:
+                st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
+                st.markdown('<h4 style="color: #e74c3c; margin-bottom: 0.8rem;">❓ 面接で重視されるポイント</h4>', unsafe_allow_html=True)
+                for i, point in enumerate(required_personality["key_interview_points"], 1):
+                    st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fadbd8; border-left: 3px solid #e74c3c; border-radius: 4px;"><strong>{i}.</strong> {point}</div>', unsafe_allow_html=True)
+            
+            # 成功要因
+            if "success_factors" in required_personality:
+                st.markdown('<div style="margin-top: 1rem;"></div>', unsafe_allow_html=True)
+                st.markdown('<h4 style="color: #f39c12; margin-bottom: 0.8rem;">🏆 この企業で成功する要因</h4>', unsafe_allow_html=True)
+                for factor in required_personality["success_factors"]:
+                    st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fdeaa7; border-left: 3px solid #f39c12; border-radius: 4px;">⭐ {factor}</div>', unsafe_allow_html=True)
+            
+            # その他の詳細情報があれば表示
+            if isinstance(required_personality, str) and not required_personality.get("required_personality"):
+                # テキスト形式の場合
+                st.write(required_personality)
         
         st.session_state.workflow_step = 2
 
