@@ -366,7 +366,7 @@ def integrated_workflow_page():
                     st.error(f"❌ エラー: {result.get('error')}")
 
 def home_page():
-    st.header("🏠 ホーム")
+    st.header("🎯 就活AIコンパス")
     st.markdown("AI があなたの就活を成功に導きます")
     
     # プロフィール確認
