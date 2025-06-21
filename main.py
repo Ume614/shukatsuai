@@ -27,10 +27,10 @@ def main():
     st.sidebar.title("📋 メニュー")
     page = st.sidebar.selectbox(
         "機能選択",
-        ["🏠 ホーム", "👤 プロフィール設定", "❓ ヘルプ"]
+        ["🎯 就活AIコンパス", "👤 プロフィール設定", "❓ ヘルプ"]
     )
     
-    if page == "🏠 ホーム":
+    if page == "🎯 就活AIコンパス":
         home_page()
     elif page == "👤 プロフィール設定":
         profile_setting_page()
@@ -512,12 +512,41 @@ def integrated_workflow_content():
         with st.container():
             st.markdown("""
             <style>
+            /* ダークモード対応のベーススタイル */
+            @media (prefers-color-scheme: dark) {
+                .analysis-container {
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+                    border: 1px solid #333 !important;
+                }
+                .section-card {
+                    background: rgba(45, 55, 72, 0.95) !important;
+                    border: 1px solid #4a5568 !important;
+                    color: #e2e8f0 !important;
+                }
+                .section-title {
+                    color: #e2e8f0 !important;
+                    border-left-color: #63b3ed !important;
+                }
+                .info-item {
+                    background: #2d3748 !important;
+                    border-left-color: #63b3ed !important;
+                    color: #e2e8f0 !important;
+                }
+                .metric-label {
+                    color: #a0aec0 !important;
+                }
+                .metric-value {
+                    color: #e2e8f0 !important;
+                }
+            }
+            
             .analysis-container {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: 2rem;
                 border-radius: 15px;
                 margin: 1rem 0;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                border: 1px solid rgba(255,255,255,0.1);
             }
             .analysis-title {
                 color: white;
@@ -525,6 +554,7 @@ def integrated_workflow_content():
                 font-weight: 700;
                 margin-bottom: 1rem;
                 text-align: center;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             }
             .section-card {
                 background: rgba(255,255,255,0.95);
@@ -532,6 +562,8 @@ def integrated_workflow_content():
                 border-radius: 12px;
                 margin: 1rem 0;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+                backdrop-filter: blur(10px);
             }
             .section-title {
                 font-size: 1.4rem;
@@ -541,26 +573,41 @@ def integrated_workflow_content():
                 border-left: 4px solid #3498db;
                 padding-left: 1rem;
             }
-            .info-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 1rem;
-                margin: 1rem 0;
-            }
             .info-item {
                 background: #f8f9fa;
                 padding: 1rem;
                 border-radius: 8px;
                 border-left: 3px solid #3498db;
+                margin: 0.5rem 0;
+                transition: all 0.3s ease;
+            }
+            .info-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             }
             .metric-label {
                 font-weight: 600;
                 color: #34495e;
                 font-size: 0.9rem;
+                margin-bottom: 0.3rem;
             }
             .metric-value {
                 color: #2c3e50;
-                margin-top: 0.3rem;
+                line-height: 1.5;
+                font-size: 0.95rem;
+            }
+            .ai-analysis-text {
+                line-height: 1.7;
+                font-size: 0.95rem;
+                margin: 0.4rem 0;
+                padding: 0.3rem 0;
+            }
+            .ai-analysis-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin: 1.5rem 0 0.8rem 0;
+                padding: 0.5rem 0;
+                border-bottom: 2px solid #e9ecef;
             }
             </style>
             """, unsafe_allow_html=True)
@@ -657,9 +704,9 @@ def integrated_workflow_content():
                                 line.startswith(('##', '**')) or
                                 line.startswith(('○', '●', '・', '◆', '◇')) or
                                 '：' in line[:20] or ':' in line[:20]):
-                                st.markdown(f"<h4 style='color: #2c3e50; margin: 1.5rem 0 0.8rem 0;'>{line}</h4>", unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-title">{line}</div>', unsafe_allow_html=True)
                             else:
-                                st.markdown(f"<div style='margin: 0.3rem 0 0.3rem 2rem; line-height: 1.6;'>{line}</div>", unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{line}</div>', unsafe_allow_html=True)
                 else:
                     try:
                         import json
@@ -677,22 +724,22 @@ def integrated_workflow_content():
                         
                         for key, config in analysis_sections.items():
                             if key in analysis_data:
-                                st.markdown(f"<h4 style='color: {config['color']}; margin: 1.5rem 0 0.8rem 0;'>{config['title']}</h4>", unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-title" style="color: {config[\"color\"]};">{config["title"]}</div>', unsafe_allow_html=True)
                                 value = analysis_data[key]
                                 if isinstance(value, list):
                                     for item in value:
-                                        st.markdown(f"<div style='margin: 0.3rem 0 0.3rem 2rem; line-height: 1.6;'>• {item}</div>", unsafe_allow_html=True)
+                                        st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">• {item}</div>', unsafe_allow_html=True)
                                 else:
-                                    st.markdown(f"<div style='margin: 0.3rem 0 0.3rem 2rem; line-height: 1.6;'>{value}</div>", unsafe_allow_html=True)
+                                    st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{value}</div>', unsafe_allow_html=True)
                         
                         for key, value in analysis_data.items():
                             if key not in analysis_sections:
-                                st.markdown(f"<h4 style='color: #2c3e50; margin: 1.5rem 0 0.8rem 0;'>{key}</h4>", unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-title">{key}</div>', unsafe_allow_html=True)
                                 if isinstance(value, list):
                                     for item in value:
-                                        st.markdown(f"<div style='margin: 0.3rem 0 0.3rem 2rem; line-height: 1.6;'>• {item}</div>", unsafe_allow_html=True)
+                                        st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">• {item}</div>', unsafe_allow_html=True)
                                 else:
-                                    st.markdown(f"<div style='margin: 0.3rem 0 0.3rem 2rem; line-height: 1.6;'>{value}</div>", unsafe_allow_html=True)
+                                    st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{value}</div>', unsafe_allow_html=True)
                     
                     except (json.JSONDecodeError, TypeError):
                         lines = str(ai_analysis).split('\n')
@@ -705,9 +752,9 @@ def integrated_workflow_content():
                                 line.startswith(('##', '**')) or
                                 line.startswith(('○', '●', '・', '◆', '◇')) or
                                 '：' in line[:20] or ':' in line[:20]):
-                                st.markdown(f"<h4 style='color: #2c3e50; margin: 1.5rem 0 0.8rem 0;'>{line}</h4>", unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-title">{line}</div>', unsafe_allow_html=True)
                             else:
-                                st.markdown(f"<div style='margin: 0.3rem 0 0.3rem 2rem; line-height: 1.6;'>{line}</div>", unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{line}</div>', unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
@@ -793,6 +840,205 @@ def integrated_workflow_content():
                 st.write(required_personality)
         
         st.session_state.workflow_step = 2
+        
+        # Step 2以降の処理を表示
+        if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 2:
+            st.divider()
+            st.subheader("2️⃣ あなたのパーソナリティ定義")
+            
+            # プロフィール設定の確認
+            if 'user_profile' in st.session_state and st.session_state.user_profile:
+                profile = st.session_state.user_profile
+                st.info(f"📋 プロフィール設定済み: {profile.get('name', 'ユーザー')}さん")
+                
+                if st.button("🔍 プロフィールを基にパーソナリティ分析実行", type="primary", key="workflow_personality_next"):
+                    with st.spinner("プロフィール情報を基にパーソナリティを分析中..."):
+                        result = st.session_state.workflow.define_user_personality()
+                        
+                        if result.get("status") == "success":
+                            st.success("✅ パーソナリティ分析完了！")
+                            
+                            user_personality = result["user_personality"]
+                            if "current_personality" in user_personality:
+                                personality = user_personality["current_personality"]
+                                
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.write("**💭 あなたの価値観:**")
+                                    for value in personality.get("values", []):
+                                        st.write(f"• {value}")
+                                    
+                                    st.write("**🎯 あなたの行動特性:**")
+                                    for trait in personality.get("behavioral_traits", []):
+                                        st.write(f"• {trait}")
+                                
+                                with col2:
+                                    st.write("**💪 現在の強み:**")
+                                    for strength in user_personality.get("strengths", []):
+                                        st.write(f"• {strength}")
+                                    
+                                    st.write("**🌱 成長領域:**")
+                                    for area in user_personality.get("development_areas", []):
+                                        st.write(f"• {area}")
+                            
+                            st.session_state.workflow_step = 3
+                            st.rerun()
+                        else:
+                            st.error(f"❌ エラー: {result.get('error')}")
+            else:
+                st.warning("⚠️ プロフィール設定が必要です")
+                st.info("👤 左メニューの「プロフィール設定」で基本情報を入力してから、パーソナリティ分析を実行してください。")
+        
+        # Step 3: ギャップ分析
+        if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 3:
+            st.divider()
+            st.subheader("3️⃣ ギャップ分析・改善提案")
+            
+            if st.button("🔍 ギャップ分析実行", type="primary", key="workflow_gap_next"):
+                with st.spinner("ギャップ分析を実行中..."):
+                    result = st.session_state.workflow.analyze_personality_gap()
+                    
+                    if result.get("status") == "success":
+                        st.success("✅ ギャップ分析完了！")
+                        
+                        gap_analysis = result["gap_analysis"]
+                        
+                        # 適合度スコア
+                        if "overall_fit_score" in gap_analysis:
+                            score = gap_analysis["overall_fit_score"]
+                            st.metric("🎯 適合度スコア", f"{score}/100")
+                            st.write(gap_analysis.get("fit_assessment", ""))
+                        
+                        # 強み（一致点）
+                        if "gap_analysis" in gap_analysis and "strengths_match" in gap_analysis["gap_analysis"]:
+                            st.write("**✅ あなたの強み（企業要求と一致）:**")
+                            for match in gap_analysis["gap_analysis"]["strengths_match"]:
+                                st.success(f"**{match.get('area', '')}**: {match.get('description', '')}")
+                                st.write(f"💡 面接アピール: {match.get('interview_appeal', '')}")
+                        
+                        # ギャップ（改善点）
+                        if "gap_analysis" in gap_analysis and "gaps_identified" in gap_analysis["gap_analysis"]:
+                            st.write("**⚠️ 改善が必要な領域:**")
+                            for gap in gap_analysis["gap_analysis"]["gaps_identified"]:
+                                severity_color = {"high": "🔴", "medium": "🟡", "low": "🟢"}
+                                icon = severity_color.get(gap.get("gap_severity", "medium"), "🟡")
+                                
+                                st.warning(f"{icon} **{gap.get('area', '')}**")
+                                st.write(f"現在: {gap.get('current_state', '')}")
+                                st.write(f"求められる状態: {gap.get('required_state', '')}")
+                        
+                        # 改善プラン
+                        if "improvement_plan" in gap_analysis:
+                            plan = gap_analysis["improvement_plan"]
+                            
+                            st.write("**📈 改善アクションプラン:**")
+                            
+                            if "immediate_actions" in plan:
+                                st.write("*すぐに取り組むべき行動:*")
+                                for action in plan["immediate_actions"]:
+                                    st.write(f"• **{action.get('action', '')}** ({action.get('timeline', '')})")
+                                    st.write(f"  方法: {action.get('method', '')}")
+                            
+                            if "medium_term_goals" in plan:
+                                st.write("*中期目標:*")
+                                for goal in plan["medium_term_goals"]:
+                                    st.write(f"• **{goal.get('goal', '')}** ({goal.get('timeline', '')})")
+                        
+                        st.session_state.workflow_step = 4
+                        st.rerun()
+                    else:
+                        st.error(f"❌ エラー: {result.get('error')}")
+        
+        # Step 4: ES生成
+        if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 4:
+            st.divider()
+            st.subheader("4️⃣ 最適化されたES生成")
+            
+            if st.button("📝 ES生成実行", type="primary", key="workflow_essay_next"):
+                with st.spinner("ギャップ分析を反映したESを生成中..."):
+                    result = st.session_state.workflow.generate_tailored_essays()
+                    
+                    if result.get("status") == "success":
+                        st.success("✅ ES生成完了！")
+                        
+                        essays = result["essays"]
+                        
+                        # 自己PR
+                        if "self_pr" in essays:
+                            st.write("**📄 自己PR:**")
+                            self_pr = essays["self_pr"]
+                            if isinstance(self_pr, dict) and "self_pr" in self_pr:
+                                st.write(self_pr["self_pr"])
+                                st.text_area("📋 自己PRコピー用", value=self_pr["self_pr"], height=150, key="copy_self_pr_next")
+                            else:
+                                st.write(self_pr)
+                        
+                        # 志望動機
+                        if "motivation" in essays:
+                            st.write("**🎯 志望動機:**")
+                            st.write(essays["motivation"])
+                            st.text_area("📋 志望動機コピー用", value=essays["motivation"], height=150, key="copy_motivation_next")
+                        
+                        st.session_state.workflow_step = 5
+                        st.rerun()
+                    else:
+                        st.error(f"❌ エラー: {result.get('error')}")
+        
+        # Step 5: 面接対策
+        if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 5:
+            st.divider()
+            st.subheader("5️⃣ 戦略的面接対策")
+            
+            if st.button("💬 面接対策生成", type="primary", key="workflow_interview_next"):
+                with st.spinner("面接戦略を準備中..."):
+                    result = st.session_state.workflow.prepare_interview_strategy()
+                    
+                    if result.get("status") == "success":
+                        st.success("✅ 面接対策完了！")
+                        
+                        interview_prep = result["interview_preparation"]
+                        
+                        # 想定質問
+                        if "questions" in interview_prep:
+                            st.write("**❓ 想定面接質問:**")
+                            questions = interview_prep["questions"]
+                            
+                            categories = {}
+                            for q in questions:
+                                category = q.get("category", "その他")
+                                if category not in categories:
+                                    categories[category] = []
+                                categories[category].append(q)
+                            
+                            for category, qs in categories.items():
+                                with st.expander(f"📋 {category} ({len(qs)}問)"):
+                                    for i, q in enumerate(qs, 1):
+                                        difficulty_color = {"低": "🟢", "中": "🟡", "高": "🔴"}
+                                        difficulty_icon = difficulty_color.get(q.get("difficulty", "中"), "⚪")
+                                        st.write(f"{i}. {difficulty_icon} {q['question']}")
+                        
+                        # 面接戦略
+                        if "strategy" in interview_prep:
+                            strategy = interview_prep["strategy"]
+                            
+                            if "highlight_strengths" in strategy:
+                                st.write("**💪 面接でアピールすべき強み:**")
+                                for strength in strategy["highlight_strengths"]:
+                                    st.write(f"• {strength}")
+                            
+                            if "address_gaps" in strategy:
+                                st.write("**🔧 ギャップへの対処法:**")
+                                for gap in strategy["address_gaps"]:
+                                    st.write(f"• {gap}")
+                        
+                        # 改善プラン
+                        if "development_plan" in interview_prep:
+                            st.write("**📈 パーソナリティ改善プラン:**")
+                            st.write(interview_prep["development_plan"])
+                        
+                        st.success("🎉 **ワークフロー完了！** 準備が整いました。")
+                    else:
+                        st.error(f"❌ エラー: {result.get('error')}")
 
 def profile_setting_page():
     st.header("👤 プロフィール設定")
