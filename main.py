@@ -506,81 +506,49 @@ def integrated_workflow_content():
         company_analysis = st.session_state.workflow.workflow_state["company_analysis"]
         st.success("✅ 企業分析完了！")
         
-        # 🤖 AI企業分析レポート（完全新設計）
-        st.markdown("---")
-        st.subheader("🤖 AI企業分析レポート")
+        # 企業分析レポート（フォーマット完全解除）
+        st.write("企業分析完了")
         
         # リセットボタン
-        if st.button("🔄 分析をリセットして最初から", type="secondary"):
+        if st.button("分析をリセット"):
             st.session_state.workflow.workflow_state["company_analysis"] = None
             st.session_state.workflow.workflow_state["required_personality"] = None
             st.session_state.workflow_step = 1
-            st.success("分析データをリセットしました")
+            st.write("リセット完了")
             st.rerun()
         
-        # 📊 企業基本情報
+        # 企業基本情報
         if company_analysis.get("basic_info"):
-            st.markdown("### 📊 企業基本情報")
+            st.write("企業基本情報")
             basic_info = company_analysis["basic_info"]
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.info(f"**🏢 企業名**\n{basic_info.get('name', 'N/A')}")
-            with col2:
-                st.info(f"**🏭 業界**\n{basic_info.get('industry', 'N/A')}")  
-            with col3:
-                st.info(f"**📋 事業概要**\n{basic_info.get('description', 'N/A')}")
+            st.write(f"企業名: {basic_info.get('name', 'N/A')}")
+            st.write(f"業界: {basic_info.get('industry', 'N/A')}")
+            st.write(f"事業概要: {basic_info.get('description', 'N/A')}")
         
-        # 📈 財務・事業状況
+        # 財務・事業状況
         if company_analysis.get("ir_summary"):
-            st.markdown("### 📈 財務・事業状況")
+            st.write("財務・事業状況")
             ir_data = company_analysis["ir_summary"]
+            st.write(f"売上動向: {ir_data.get('revenue_trend', 'N/A')}")
+            st.write(f"利益動向: {ir_data.get('profit_trend', 'N/A')}")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                st.success(f"**💰 売上動向**\n{ir_data.get('revenue_trend', 'N/A')}")
-                
-                if ir_data.get("key_initiatives"):
-                    st.markdown("**🚀 重点施策:**")
-                    for initiative in ir_data["key_initiatives"]:
-                        st.write(f"• {initiative}")
+            if ir_data.get("key_initiatives"):
+                st.write("重点施策:")
+                for initiative in ir_data["key_initiatives"]:
+                    st.write(f"- {initiative}")
             
-            with col2:
-                st.success(f"**📊 利益動向**\n{ir_data.get('profit_trend', 'N/A')}")
-                
-                if ir_data.get("challenges"):
-                    st.markdown("**⚠️ 主要課題:**")
-                    for challenge in ir_data["challenges"]:
-                        st.write(f"• {challenge}")
+            if ir_data.get("challenges"):
+                st.write("主要課題:")
+                for challenge in ir_data["challenges"]:
+                    st.write(f"- {challenge}")
         
-        # 🧠 AI戦略分析
+        # AI戦略分析
         if company_analysis.get("ai_analysis"):
-            st.markdown("### 🧠 AI戦略分析")
+            st.write("AI戦略分析")
             ai_analysis = company_analysis["ai_analysis"]
             
             if isinstance(ai_analysis, str):
-                if ai_analysis.startswith("Error:"):
-                    st.error(ai_analysis)
-                else:
-                    # テキスト形式の分析結果をMarkdownで表示
-                    lines = ai_analysis.split('\n')
-                    formatted_text = ""
-                    
-                    for line in lines:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        
-                        # タイトル行の判定と整形
-                        if (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')) or
-                            line.startswith(('##', '**')) or
-                            line.startswith(('○', '●', '・', '◆', '◇')) or
-                            '：' in line[:20] or ':' in line[:20]):
-                            formatted_text += f"\n\n**{line}**\n\n"
-                        else:
-                            formatted_text += f"{line}\n\n"
-                    
-                    st.markdown(formatted_text)
+                st.text(ai_analysis)
             else:
                 try:
                     import json
@@ -589,116 +557,66 @@ def integrated_workflow_content():
                     else:
                         analysis_data = json.loads(ai_analysis)
                     
-                    # 構造化された分析結果の表示
-                    if "strengths" in analysis_data:
-                        st.markdown("**💪 企業の強み**")
-                        if isinstance(analysis_data["strengths"], list):
-                            for strength in analysis_data["strengths"]:
-                                st.success(f"• {strength}")
-                        else:
-                            st.success(analysis_data["strengths"])
-                    
-                    if "weaknesses" in analysis_data:
-                        st.markdown("**⚠️ 課題・弱み**")
-                        if isinstance(analysis_data["weaknesses"], list):
-                            for weakness in analysis_data["weaknesses"]:
-                                st.warning(f"• {weakness}")
-                        else:
-                            st.warning(analysis_data["weaknesses"])
-                    
-                    if "opportunities" in analysis_data:
-                        st.markdown("**🌟 事業機会**")
-                        if isinstance(analysis_data["opportunities"], list):
-                            for opportunity in analysis_data["opportunities"]:
-                                st.info(f"• {opportunity}")
-                        else:
-                            st.info(analysis_data["opportunities"])
-                    
-                    if "competitive_position" in analysis_data:
-                        st.markdown("**🎯 競争ポジション**")
-                        st.write(analysis_data["competitive_position"])
-                    
-                    # その他の分析項目
                     for key, value in analysis_data.items():
-                        if key not in ["strengths", "weaknesses", "opportunities", "competitive_position"]:
-                            st.markdown(f"**{key}**")
-                            if isinstance(value, list):
-                                for item in value:
-                                    st.write(f"• {item}")
-                            else:
-                                st.write(value)
+                        st.write(f"{key}:")
+                        if isinstance(value, list):
+                            for item in value:
+                                st.write(f"- {item}")
+                        else:
+                            st.write(value)
                 
                 except (json.JSONDecodeError, TypeError):
-                    # JSON解析失敗時はプレーンテキストとして表示
                     st.text(str(ai_analysis))
         
-        # 👤 求める人物像（ダークモード完全対応・新設計）
+        # 求める人物像（フォーマット完全解除）
         required_personality = st.session_state.workflow.workflow_state.get("required_personality")
         if required_personality:
-            st.markdown("---")
-            st.subheader("👤 この企業が求める人物像")
+            st.write("求める人物像")
             
             if "required_personality" in required_personality:
                 personality = required_personality["required_personality"]
                 
-                # 価値観とスキルを2カラムで表示
-                col1, col2 = st.columns(2)
+                if personality.get("values"):
+                    st.write("重視する価値観:")
+                    for value in personality["values"]:
+                        st.write(f"- {value}")
                 
-                with col1:
-                    if personality.get("values"):
-                        st.markdown("**💭 重視する価値観**")
-                        for value in personality["values"]:
-                            st.success(f"✓ {value}")
-                    
-                    if personality.get("communication_style"):
-                        st.markdown("**💬 コミュニケーション**")
-                        st.info(personality["communication_style"])
-                    
-                    if personality.get("leadership_style"):
-                        st.markdown("**👥 リーダーシップ**")
-                        st.info(personality["leadership_style"])
+                if personality.get("skills"):
+                    st.write("必要なスキル:")
+                    for skill in personality["skills"]:
+                        st.write(f"- {skill}")
                 
-                with col2:
-                    if personality.get("skills"):
-                        st.markdown("**🛠 必要なスキル**")
-                        for skill in personality["skills"]:
-                            st.warning(f"🔧 {skill}")
-                    
-                    if personality.get("problem_solving"):
-                        st.markdown("**🔧 問題解決**")
-                        st.info(personality["problem_solving"])
-                    
-                    if personality.get("teamwork"):
-                        st.markdown("**🤝 チームワーク**")
-                        st.info(personality["teamwork"])
+                if personality.get("behavioral_traits"):
+                    st.write("求める行動特性:")
+                    for trait in personality["behavioral_traits"]:
+                        st.write(f"- {trait}")
                 
-                # 行動特性と成長姿勢
-                if personality.get("behavioral_traits") or personality.get("growth_mindset"):
-                    st.markdown("---")
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        if personality.get("behavioral_traits"):
-                            st.markdown("**🎯 求める行動特性**")
-                            for trait in personality["behavioral_traits"]:
-                                st.info(f"• {trait}")
-                    
-                    with col2:
-                        if personality.get("growth_mindset"):
-                            st.markdown("**📈 成長姿勢**")
-                            st.info(personality["growth_mindset"])
+                if personality.get("communication_style"):
+                    st.write(f"コミュニケーション: {personality['communication_style']}")
+                
+                if personality.get("leadership_style"):
+                    st.write(f"リーダーシップ: {personality['leadership_style']}")
+                
+                if personality.get("problem_solving"):
+                    st.write(f"問題解決: {personality['problem_solving']}")
+                
+                if personality.get("teamwork"):
+                    st.write(f"チームワーク: {personality['teamwork']}")
+                
+                if personality.get("growth_mindset"):
+                    st.write(f"成長姿勢: {personality['growth_mindset']}")
             
             # 面接重要ポイント
             if "key_interview_points" in required_personality:
-                st.markdown("**❓ 面接で重視されるポイント**")
+                st.write("面接で重視されるポイント:")
                 for i, point in enumerate(required_personality["key_interview_points"], 1):
-                    st.error(f"**{i}.** {point}")
+                    st.write(f"{i}. {point}")
             
             # 成功要因
             if "success_factors" in required_personality:
-                st.markdown("**🏆 この企業で成功する要因**")
+                st.write("この企業で成功する要因:")
                 for factor in required_personality["success_factors"]:
-                    st.success(f"⭐ {factor}")
+                    st.write(f"- {factor}")
             
             # その他の詳細情報があれば表示
             if isinstance(required_personality, str) and not required_personality.get("required_personality"):
