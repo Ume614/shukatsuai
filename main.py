@@ -17,6 +17,8 @@ def main():
         layout="wide"
     )
     
+    # Force cache clear - deployment trigger v2.0
+    
     st.markdown("就活生向けAI支援ツール - 企業分析から始まる一貫した就活支援")
     
     # ワークフロー状態の初期化
