@@ -504,335 +504,202 @@ def integrated_workflow_content():
         company_analysis = st.session_state.workflow.workflow_state["company_analysis"]
         st.success("✅ 企業分析完了！")
         
-        # 統合された企業分析レポート
-        with st.container():
-            st.markdown("""
-            <style>
-            /* ダークモード対応のベーススタイル */
-            @media (prefers-color-scheme: dark) {
-                .analysis-container {
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
-                    border: 1px solid #333 !important;
-                }
-                .section-card {
-                    background: rgba(45, 55, 72, 0.95) !important;
-                    border: 1px solid #4a5568 !important;
-                    color: #e2e8f0 !important;
-                }
-                .section-title {
-                    color: #e2e8f0 !important;
-                    border-left-color: #63b3ed !important;
-                }
-                .info-item {
-                    background: #2d3748 !important;
-                    border-left-color: #63b3ed !important;
-                    color: #e2e8f0 !important;
-                }
-                .metric-label {
-                    color: #a0aec0 !important;
-                }
-                .metric-value {
-                    color: #e2e8f0 !important;
-                }
-            }
-            
-            .analysis-container {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 2rem;
-                border-radius: 15px;
-                margin: 1rem 0;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-                border: 1px solid rgba(255,255,255,0.1);
-            }
-            .analysis-title {
-                color: white;
-                font-size: 1.8rem;
-                font-weight: 700;
-                margin-bottom: 1rem;
-                text-align: center;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            }
-            .section-card {
-                background: rgba(255,255,255,0.95);
-                padding: 1.5rem;
-                border-radius: 12px;
-                margin: 1rem 0;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-                border: 1px solid rgba(255,255,255,0.2);
-                backdrop-filter: blur(10px);
-            }
-            .section-title {
-                font-size: 1.4rem;
-                font-weight: 600;
-                color: #2c3e50;
-                margin-bottom: 1rem;
-                border-left: 4px solid #3498db;
-                padding-left: 1rem;
-            }
-            .info-item {
-                background: #f8f9fa;
-                padding: 1rem;
-                border-radius: 8px;
-                border-left: 3px solid #3498db;
-                margin: 0.5rem 0;
-                transition: all 0.3s ease;
-            }
-            .info-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            }
-            .metric-label {
-                font-weight: 600;
-                color: #34495e;
-                font-size: 0.9rem;
-                margin-bottom: 0.3rem;
-            }
-            .metric-value {
-                color: #2c3e50;
-                line-height: 1.5;
-                font-size: 0.95rem;
-            }
-            .ai-analysis-text {
-                line-height: 1.7;
-                font-size: 0.95rem;
-                margin: 0.4rem 0;
-                padding: 0.3rem 0;
-            }
-            .ai-analysis-title {
-                font-size: 1.2rem;
-                font-weight: 600;
-                margin: 1.5rem 0 0.8rem 0;
-                padding: 0.5rem 0;
-                border-bottom: 2px solid #e9ecef;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            
-            st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
-            st.markdown('<h2 class="analysis-title">🤖 AI企業分析レポート</h2>', unsafe_allow_html=True)
-            
-            # 基本情報セクション
-            if company_analysis.get("basic_info"):
-                basic_info = company_analysis["basic_info"]
-                st.markdown('<div class="section-card">', unsafe_allow_html=True)
-                st.markdown('<div class="section-title">🏢 企業概要</div>', unsafe_allow_html=True)
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.markdown(f"""
-                    <div class="info-item">
-                        <div class="metric-label">企業名</div>
-                        <div class="metric-value">{basic_info.get('name', 'N/A')}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="info-item">
-                        <div class="metric-label">業界</div>
-                        <div class="metric-value">{basic_info.get('industry', 'N/A')}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    st.markdown(f"""
-                    <div class="info-item">
-                        <div class="metric-label">事業概要</div>
-                        <div class="metric-value">{basic_info.get('description', 'N/A')}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            # 財務情報セクション
-            if company_analysis.get("ir_summary"):
-                ir_data = company_analysis["ir_summary"]
-                st.markdown('<div class="section-card">', unsafe_allow_html=True)
-                st.markdown('<div class="section-title">📈 財務・事業動向</div>', unsafe_allow_html=True)
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown(f"""
-                    <div class="info-item">
-                        <div class="metric-label">💰 売上動向</div>
-                        <div class="metric-value">{ir_data.get('revenue_trend', 'N/A')}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if ir_data.get("key_initiatives"):
-                        st.markdown('<div class="metric-label">🚀 重点施策</div>', unsafe_allow_html=True)
-                        for initiative in ir_data["key_initiatives"]:
-                            st.markdown(f"<div class='metric-value'>• {initiative}</div>", unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="info-item">
-                        <div class="metric-label">📊 利益動向</div>
-                        <div class="metric-value">{ir_data.get('profit_trend', 'N/A')}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    if ir_data.get("challenges"):
-                        st.markdown('<div class="metric-label">⚠️ 主要課題</div>', unsafe_allow_html=True)
-                        for challenge in ir_data["challenges"]:
-                            st.markdown(f"<div class='metric-value'>• {challenge}</div>", unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            # AI分析セクション
-            if company_analysis.get("ai_analysis"):
-                st.markdown('<div class="section-card">', unsafe_allow_html=True)
-                st.markdown('<div class="section-title">🧠 AI戦略分析</div>', unsafe_allow_html=True)
-                
-                ai_analysis = company_analysis["ai_analysis"]
-                
-                if isinstance(ai_analysis, str):
-                    if ai_analysis.startswith("Error:"):
-                        st.error(ai_analysis)
-                    else:
-                        lines = ai_analysis.split('\n')
-                        for line in lines:
-                            line = line.strip()
-                            if not line:
-                                continue
-                            
-                            if (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')) or
-                                line.startswith(('##', '**')) or
-                                line.startswith(('○', '●', '・', '◆', '◇')) or
-                                '：' in line[:20] or ':' in line[:20]):
-                                st.markdown(f'<div class="ai-analysis-title">{line}</div>', unsafe_allow_html=True)
-                            else:
-                                st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{line}</div>', unsafe_allow_html=True)
-                else:
-                    try:
-                        import json
-                        if isinstance(ai_analysis, dict):
-                            analysis_data = ai_analysis
-                        else:
-                            analysis_data = json.loads(ai_analysis)
-                        
-                        analysis_sections = {
-                            "strengths": {"title": "💪 企業の強み", "color": "#27ae60"},
-                            "weaknesses": {"title": "⚠️ 課題・弱み", "color": "#e74c3c"},
-                            "opportunities": {"title": "🌟 事業機会", "color": "#3498db"},
-                            "competitive_position": {"title": "🎯 競争ポジション", "color": "#9b59b6"}
-                        }
-                        
-                        for key, config in analysis_sections.items():
-                            if key in analysis_data:
-                                st.markdown(f'<div class="ai-analysis-title" style="color: {config["color"]};">{config["title"]}</div>', unsafe_allow_html=True)
-                                value = analysis_data[key]
-                                if isinstance(value, list):
-                                    for item in value:
-                                        st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">• {item}</div>', unsafe_allow_html=True)
-                                else:
-                                    st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{value}</div>', unsafe_allow_html=True)
-                        
-                        for key, value in analysis_data.items():
-                            if key not in analysis_sections:
-                                st.markdown(f'<div class="ai-analysis-title">{key}</div>', unsafe_allow_html=True)
-                                if isinstance(value, list):
-                                    for item in value:
-                                        st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">• {item}</div>', unsafe_allow_html=True)
-                                else:
-                                    st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{value}</div>', unsafe_allow_html=True)
-                    
-                    except (json.JSONDecodeError, TypeError):
-                        lines = str(ai_analysis).split('\n')
-                        for line in lines:
-                            line = line.strip()
-                            if not line:
-                                continue
-                            
-                            if (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')) or
-                                line.startswith(('##', '**')) or
-                                line.startswith(('○', '●', '・', '◆', '◇')) or
-                                '：' in line[:20] or ':' in line[:20]):
-                                st.markdown(f'<div class="ai-analysis-title">{line}</div>', unsafe_allow_html=True)
-                            else:
-                                st.markdown(f'<div class="ai-analysis-text" style="margin-left: 1.5rem;">{line}</div>', unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+        # 🤖 AI企業分析レポート（完全新設計）
+        st.markdown("---")
+        st.subheader("🤖 AI企業分析レポート")
         
-        # 求める人物像
+        # リセットボタン
+        if st.button("🔄 分析をリセットして最初から", type="secondary"):
+            st.session_state.workflow.workflow_state["company_analysis"] = None
+            st.session_state.workflow.workflow_state["required_personality"] = None
+            st.session_state.workflow_step = 1
+            st.success("分析データをリセットしました")
+            st.rerun()
+        
+        # 📊 企業基本情報
+        if company_analysis.get("basic_info"):
+            st.markdown("### 📊 企業基本情報")
+            basic_info = company_analysis["basic_info"]
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.info(f"**🏢 企業名**\n{basic_info.get('name', 'N/A')}")
+            with col2:
+                st.info(f"**🏭 業界**\n{basic_info.get('industry', 'N/A')}")  
+            with col3:
+                st.info(f"**📋 事業概要**\n{basic_info.get('description', 'N/A')}")
+        
+        # 📈 財務・事業状況
+        if company_analysis.get("ir_summary"):
+            st.markdown("### 📈 財務・事業状況")
+            ir_data = company_analysis["ir_summary"]
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.success(f"**💰 売上動向**\n{ir_data.get('revenue_trend', 'N/A')}")
+                
+                if ir_data.get("key_initiatives"):
+                    st.markdown("**🚀 重点施策:**")
+                    for initiative in ir_data["key_initiatives"]:
+                        st.write(f"• {initiative}")
+            
+            with col2:
+                st.success(f"**📊 利益動向**\n{ir_data.get('profit_trend', 'N/A')}")
+                
+                if ir_data.get("challenges"):
+                    st.markdown("**⚠️ 主要課題:**")
+                    for challenge in ir_data["challenges"]:
+                        st.write(f"• {challenge}")
+        
+        # 🧠 AI戦略分析
+        if company_analysis.get("ai_analysis"):
+            st.markdown("### 🧠 AI戦略分析")
+            ai_analysis = company_analysis["ai_analysis"]
+            
+            if isinstance(ai_analysis, str):
+                if ai_analysis.startswith("Error:"):
+                    st.error(ai_analysis)
+                else:
+                    # テキスト形式の分析結果をMarkdownで表示
+                    lines = ai_analysis.split('\n')
+                    formatted_text = ""
+                    
+                    for line in lines:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        
+                        # タイトル行の判定と整形
+                        if (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')) or
+                            line.startswith(('##', '**')) or
+                            line.startswith(('○', '●', '・', '◆', '◇')) or
+                            '：' in line[:20] or ':' in line[:20]):
+                            formatted_text += f"\n\n**{line}**\n\n"
+                        else:
+                            formatted_text += f"{line}\n\n"
+                    
+                    st.markdown(formatted_text)
+            else:
+                try:
+                    import json
+                    if isinstance(ai_analysis, dict):
+                        analysis_data = ai_analysis
+                    else:
+                        analysis_data = json.loads(ai_analysis)
+                    
+                    # 構造化された分析結果の表示
+                    if "strengths" in analysis_data:
+                        st.markdown("**💪 企業の強み**")
+                        if isinstance(analysis_data["strengths"], list):
+                            for strength in analysis_data["strengths"]:
+                                st.success(f"• {strength}")
+                        else:
+                            st.success(analysis_data["strengths"])
+                    
+                    if "weaknesses" in analysis_data:
+                        st.markdown("**⚠️ 課題・弱み**")
+                        if isinstance(analysis_data["weaknesses"], list):
+                            for weakness in analysis_data["weaknesses"]:
+                                st.warning(f"• {weakness}")
+                        else:
+                            st.warning(analysis_data["weaknesses"])
+                    
+                    if "opportunities" in analysis_data:
+                        st.markdown("**🌟 事業機会**")
+                        if isinstance(analysis_data["opportunities"], list):
+                            for opportunity in analysis_data["opportunities"]:
+                                st.info(f"• {opportunity}")
+                        else:
+                            st.info(analysis_data["opportunities"])
+                    
+                    if "competitive_position" in analysis_data:
+                        st.markdown("**🎯 競争ポジション**")
+                        st.write(analysis_data["competitive_position"])
+                    
+                    # その他の分析項目
+                    for key, value in analysis_data.items():
+                        if key not in ["strengths", "weaknesses", "opportunities", "competitive_position"]:
+                            st.markdown(f"**{key}**")
+                            if isinstance(value, list):
+                                for item in value:
+                                    st.write(f"• {item}")
+                            else:
+                                st.write(value)
+                
+                except (json.JSONDecodeError, TypeError):
+                    # JSON解析失敗時はプレーンテキストとして表示
+                    st.text(str(ai_analysis))
+        
+        # 👤 求める人物像（ダークモード完全対応・新設計）
         required_personality = st.session_state.workflow.workflow_state.get("required_personality")
         if required_personality:
-            st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
-            st.markdown('<h2 class="analysis-title">👤 求める人物像</h2>', unsafe_allow_html=True)
+            st.markdown("---")
+            st.subheader("👤 この企業が求める人物像")
             
             if "required_personality" in required_personality:
                 personality = required_personality["required_personality"]
-                
-                st.markdown('<div class="section-card">', unsafe_allow_html=True)
                 
                 # 価値観とスキルを2カラムで表示
                 col1, col2 = st.columns(2)
                 
                 with col1:
                     if personality.get("values"):
-                        st.markdown('<h4 style="color: #27ae60; margin-bottom: 0.8rem;">💭 重視する価値観</h4>', unsafe_allow_html=True)
+                        st.markdown("**💭 重視する価値観**")
                         for value in personality["values"]:
-                            st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #d5edda; border-left: 3px solid #27ae60; border-radius: 4px;">✓ {value}</div>', unsafe_allow_html=True)
+                            st.success(f"✓ {value}")
                     
                     if personality.get("communication_style"):
-                        st.markdown('<h4 style="color: #3498db; margin: 1rem 0 0.8rem 0;">💬 コミュニケーション</h4>', unsafe_allow_html=True)
-                        st.markdown(f'<div style="line-height: 1.6; margin: 0.2rem 0;">{personality["communication_style"]}</div>', unsafe_allow_html=True)
+                        st.markdown("**💬 コミュニケーション**")
+                        st.info(personality["communication_style"])
                     
                     if personality.get("leadership_style"):
-                        st.markdown('<h4 style="color: #9b59b6; margin: 1rem 0 0.8rem 0;">👥 リーダーシップ</h4>', unsafe_allow_html=True)
-                        st.markdown(f'<div style="line-height: 1.6; margin: 0.2rem 0;">{personality["leadership_style"]}</div>', unsafe_allow_html=True)
+                        st.markdown("**👥 リーダーシップ**")
+                        st.info(personality["leadership_style"])
                 
                 with col2:
                     if personality.get("skills"):
-                        st.markdown('<h4 style="color: #e67e22; margin-bottom: 0.8rem;">🛠 必要なスキル</h4>', unsafe_allow_html=True)
+                        st.markdown("**🛠 必要なスキル**")
                         for skill in personality["skills"]:
-                            st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fdeaa7; border-left: 3px solid #e67e22; border-radius: 4px;">🔧 {skill}</div>', unsafe_allow_html=True)
+                            st.warning(f"🔧 {skill}")
                     
                     if personality.get("problem_solving"):
-                        st.markdown('<h4 style="color: #e74c3c; margin: 1rem 0 0.8rem 0;">🔧 問題解決</h4>', unsafe_allow_html=True)
-                        st.markdown(f'<div style="line-height: 1.6; margin: 0.2rem 0;">{personality["problem_solving"]}</div>', unsafe_allow_html=True)
+                        st.markdown("**🔧 問題解決**")
+                        st.info(personality["problem_solving"])
                     
                     if personality.get("teamwork"):
-                        st.markdown('<h4 style="color: #1abc9c; margin: 1rem 0 0.8rem 0;">🤝 チームワーク</h4>', unsafe_allow_html=True)
-                        st.markdown(f'<div style="line-height: 1.6; margin: 0.2rem 0;">{personality["teamwork"]}</div>', unsafe_allow_html=True)
+                        st.markdown("**🤝 チームワーク**")
+                        st.info(personality["teamwork"])
                 
-                # 行動特性と成長姿勢を下段に表示
+                # 行動特性と成長姿勢
                 if personality.get("behavioral_traits") or personality.get("growth_mindset"):
-                    st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
+                    st.markdown("---")
                     col1, col2 = st.columns(2)
                     
                     with col1:
                         if personality.get("behavioral_traits"):
-                            st.markdown('<h4 style="color: #3498db; margin-bottom: 0.8rem;">🎯 求める行動特性</h4>', unsafe_allow_html=True)
+                            st.markdown("**🎯 求める行動特性**")
                             for trait in personality["behavioral_traits"]:
-                                st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #d1ecf1; border-left: 3px solid #3498db; border-radius: 4px;">• {trait}</div>', unsafe_allow_html=True)
+                                st.info(f"• {trait}")
                     
                     with col2:
                         if personality.get("growth_mindset"):
-                            st.markdown('<h4 style="color: #8e44ad; margin-bottom: 0.8rem;">📈 成長姿勢</h4>', unsafe_allow_html=True)
-                            st.markdown(f'<div style="line-height: 1.6; margin: 0.2rem 0;">{personality["growth_mindset"]}</div>', unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+                            st.markdown("**📈 成長姿勢**")
+                            st.info(personality["growth_mindset"])
             
             # 面接重要ポイント
             if "key_interview_points" in required_personality:
-                st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
-                st.markdown('<h4 style="color: #e74c3c; margin-bottom: 0.8rem;">❓ 面接で重視されるポイント</h4>', unsafe_allow_html=True)
+                st.markdown("**❓ 面接で重視されるポイント**")
                 for i, point in enumerate(required_personality["key_interview_points"], 1):
-                    st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fadbd8; border-left: 3px solid #e74c3c; border-radius: 4px;"><strong>{i}.</strong> {point}</div>', unsafe_allow_html=True)
+                    st.error(f"**{i}.** {point}")
             
             # 成功要因
             if "success_factors" in required_personality:
-                st.markdown('<div style="margin-top: 1rem;"></div>', unsafe_allow_html=True)
-                st.markdown('<h4 style="color: #f39c12; margin-bottom: 0.8rem;">🏆 この企業で成功する要因</h4>', unsafe_allow_html=True)
+                st.markdown("**🏆 この企業で成功する要因**")
                 for factor in required_personality["success_factors"]:
-                    st.markdown(f'<div style="margin: 0.2rem 0; padding: 0.3rem 0.8rem; background: #fdeaa7; border-left: 3px solid #f39c12; border-radius: 4px;">⭐ {factor}</div>', unsafe_allow_html=True)
+                    st.success(f"⭐ {factor}")
             
             # その他の詳細情報があれば表示
             if isinstance(required_personality, str) and not required_personality.get("required_personality"):
-                # テキスト形式の場合
                 st.write(required_personality)
         
         st.session_state.workflow_step = 2
