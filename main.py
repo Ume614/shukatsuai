@@ -724,7 +724,7 @@ def integrated_workflow_content():
                         
                         for key, config in analysis_sections.items():
                             if key in analysis_data:
-                                st.markdown(f'<div class="ai-analysis-title" style="color: {config[\"color\"]};">{config["title"]}</div>', unsafe_allow_html=True)
+                                st.markdown(f'<div class="ai-analysis-title" style="color: {config["color"]};">{config["title"]}</div>', unsafe_allow_html=True)
                                 value = analysis_data[key]
                                 if isinstance(value, list):
                                     for item in value:
