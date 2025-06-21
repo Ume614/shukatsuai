@@ -394,38 +394,32 @@ def home_page():
     with col1:
         if st.button("🚀 完全分析開始", type="primary", use_container_width=True):
             if company_name:
-                if 'user_profile' in st.session_state:
-                    # ワークフローを開始
-                    st.session_state.selected_company = company_name
-                    st.session_state.workflow_active = True
-                    st.success(f"✅ {company_name} の分析を開始します")
+                # ワークフローを開始（プロフィール設定なしでも可能）
+                st.session_state.selected_company = company_name
+                st.session_state.workflow_active = True
+                st.success(f"✅ {company_name} の分析を開始します")
+                
+                # ワークフロー開始
+                with st.spinner("企業分析を実行中..."):
+                    result = st.session_state.workflow.start_workflow(company_name)
                     
-                    # ワークフロー開始
-                    with st.spinner("企業分析を実行中..."):
-                        result = st.session_state.workflow.start_workflow(company_name)
-                        
-                        if result.get("status") == "success":
-                            st.success("🎉 企業分析完了！詳細ワークフローで続きを進めてください")
-                            st.session_state.show_detailed_workflow = True
-                            st.rerun()
-                        else:
-                            st.error(f"❌ エラー: {result.get('error', '不明なエラー')}")
-                else:
-                    st.error("❌ 先にプロフィール設定を完了してください")
+                    if result.get("status") == "success":
+                        st.success("🎉 企業分析完了！詳細ワークフローで続きを進めてください")
+                        st.session_state.show_detailed_workflow = True
+                        st.rerun()
+                    else:
+                        st.error(f"❌ エラー: {result.get('error', '不明なエラー')}")
             else:
                 st.error("❌ 企業名を入力してください")
     
     with col2:
         if st.button("🔍 詳細ワークフロー", use_container_width=True):
             if company_name:
-                if 'user_profile' in st.session_state:
-                    # ワークフローを開始してセッション状態を設定
-                    st.session_state.selected_company = company_name
-                    st.session_state.show_detailed_workflow = True
-                    st.success(f"✅ {company_name} の詳細ワークフローを開始します")
-                    st.rerun()
-                else:
-                    st.error("❌ 先にプロフィール設定を完了してください")
+                # ワークフローを開始してセッション状態を設定（プロフィール設定なしでも可能）
+                st.session_state.selected_company = company_name
+                st.session_state.show_detailed_workflow = True
+                st.success(f"✅ {company_name} の詳細ワークフローを開始します")
+                st.rerun()
             else:
                 st.error("❌ 企業名を入力してください")
     
@@ -460,19 +454,21 @@ def home_page():
     # 使い方ガイド
     with st.expander("📖 使い方ガイド"):
         st.markdown("""
-        **1. プロフィール設定** 👤
-        - 大学・学部・学科情報
-        - 部活動・サークル活動
-        - ガクチカ・志望業界
+        **🚀 クイックスタート**
+        1. 企業名を入力して「完全分析開始」をクリック
+        2. AI企業分析結果を確認
+        3. 簡易フォームでパーソナリティ情報を入力
+        4. ギャップ分析→ES生成→面接対策と順次実行
         
-        **2. 企業分析開始** 🏢
-        - ホーム画面で企業名を入力
-        - 「完全分析開始」をクリック
+        **📊 詳細分析の場合**
+        1. 👤「プロフィール設定」で詳細情報を入力
+        2. より精密なパーソナリティ分析が可能
+        3. カスタマイズされたES・面接対策を生成
         
-        **3. ワークフロー実行** 🎯
-        - 統合ワークフローで段階的に進行
-        - パーソナリティ分析・ギャップ分析
-        - ES生成・面接対策まで完了
+        **💡 ポイント**
+        - プロフィール設定は後からでもOK
+        - 企業分析は即座に開始可能
+        - 詳細設定で分析精度がアップ
         
         詳しくは「❓ ヘルプ」をご覧ください。
         """)
@@ -886,8 +882,71 @@ def integrated_workflow_content():
                         else:
                             st.error(f"❌ エラー: {result.get('error')}")
             else:
-                st.warning("⚠️ プロフィール設定が必要です")
-                st.info("👤 左メニューの「プロフィール設定」で基本情報を入力してから、パーソナリティ分析を実行してください。")
+                st.info("💡 プロフィール設定済みの場合、より詳細な分析が可能です")
+                st.markdown("**オプション1:** 👤 左メニューの「プロフィール設定」で詳細情報を入力")
+                st.markdown("**オプション2:** 👇 下記フォームで簡易入力")
+            
+            # 手動入力オプション（常に表示）
+            with st.expander("✏️ 簡易パーソナリティ情報入力", expanded=True if 'user_profile' not in st.session_state or not st.session_state.user_profile else False):
+                with st.form("personality_form_simple"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        strengths = st.text_area("💪 あなたの強み・特徴", key="personality_strengths_simple")
+                        experiences = st.text_area("📚 主な経験・活動", key="personality_experiences_simple")
+                        values = st.text_area("⭐ 大切にしている価値観", key="personality_values_simple")
+                    
+                    with col2:
+                        goals = st.text_area("🎯 将来の目標・やりたいこと", key="personality_goals_simple")
+                        leadership = st.text_area("👥 リーダーシップ経験", key="personality_leadership_simple")
+                        problem_solving = st.text_area("🔧 問題解決の経験", key="personality_problem_solving_simple")
+                    
+                    if st.form_submit_button("📊 簡易パーソナリティ分析実行", type="primary"):
+                        if strengths and experiences:
+                            user_info = {
+                                "strengths": strengths,
+                                "experiences": experiences,
+                                "values": values,
+                                "goals": goals,
+                                "leadership": leadership,
+                                "problem_solving": problem_solving
+                            }
+                            
+                            with st.spinner("パーソナリティを分析中..."):
+                                result = st.session_state.workflow.define_user_personality(user_info)
+                                
+                                if result.get("status") == "success":
+                                    st.success("✅ パーソナリティ分析完了！")
+                                    
+                                    user_personality = result["user_personality"]
+                                    if "current_personality" in user_personality:
+                                        personality = user_personality["current_personality"]
+                                        
+                                        col1, col2 = st.columns(2)
+                                        with col1:
+                                            st.write("**💭 あなたの価値観:**")
+                                            for value in personality.get("values", []):
+                                                st.write(f"• {value}")
+                                            
+                                            st.write("**🎯 あなたの行動特性:**")
+                                            for trait in personality.get("behavioral_traits", []):
+                                                st.write(f"• {trait}")
+                                        
+                                        with col2:
+                                            st.write("**💪 現在の強み:**")
+                                            for strength in user_personality.get("strengths", []):
+                                                st.write(f"• {strength}")
+                                            
+                                            st.write("**🌱 成長領域:**")
+                                            for area in user_personality.get("development_areas", []):
+                                                st.write(f"• {area}")
+                                    
+                                    st.session_state.workflow_step = 3
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ エラー: {result.get('error')}")
+                        else:
+                            st.error("強みと経験は必須入力です")
         
         # Step 3: ギャップ分析
         if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 3:
