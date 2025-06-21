@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import json
 from .company_analysis.analyzer import CompanyAnalyzer
 from .personality_analysis.analyzer import PersonalityAnalyzer
