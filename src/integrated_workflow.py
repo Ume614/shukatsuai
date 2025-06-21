@@ -50,11 +50,36 @@ class IntegratedWorkflow:
         except Exception as e:
             return {"status": "error", "error": str(e)}
     
-    def define_user_personality(self, user_info: Dict[str, Any]) -> Dict[str, Any]:
+    def define_user_personality(self, user_info: Dict[str, Any] = None) -> Dict[str, Any]:
         """Step 2: ユーザーのパーソナリティを定義"""
         try:
             if not self.workflow_state["company_analysis"]:
                 return {"status": "error", "error": "企業分析を先に実行してください"}
+            
+            # user_infoが提供されていない場合、セッション状態から取得を試みる
+            if user_info is None:
+                try:
+                    import streamlit as st
+                    if hasattr(st, 'session_state') and 'user_profile' in st.session_state:
+                        profile = st.session_state.user_profile
+                        user_info = {
+                            "name": profile.get('name', ''),
+                            "university": f"{profile.get('university', '')} {profile.get('faculty', '')} {profile.get('department', '')}".strip(),
+                            "graduation_year": profile.get('graduation_year', ''),
+                            "club_activities": profile.get('club_activities', ''),
+                            "part_time_job": profile.get('part_time_job', ''),
+                            "internship": profile.get('internship', ''),
+                            "gakuchika": profile.get('gakuchika', ''),
+                            "strengths": profile.get('strengths', ''),
+                            "values": profile.get('values', ''),
+                            "career_goals": profile.get('career_goals', ''),
+                            "target_industries": ', '.join(profile.get('target_industries', [])),
+                            "job_types": ', '.join(profile.get('job_types', []))
+                        }
+                    else:
+                        return {"status": "error", "error": "ユーザープロフィール情報が見つかりません"}
+                except ImportError:
+                    return {"status": "error", "error": "ユーザー情報を提供してください"}
             
             # ユーザーパーソナリティ分析
             user_personality = self.personality_analyzer.define_user_personality(user_info)

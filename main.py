@@ -28,17 +28,19 @@ def main():
     st.sidebar.title("📋 メニュー")
     page = st.sidebar.selectbox(
         "機能選択",
-        ["🏠 ホーム", "🎯 統合ワークフロー", "🏢 企業分析", "👤 業界適性診断", "📝 ES生成・改善", "💬 面接対策"]
+        ["🏠 ホーム", "👤 プロフィール設定", "❓ ヘルプ", "🎯 統合ワークフロー", "🏢 企業分析", "📝 ES生成・改善", "💬 面接対策"]
     )
     
     if page == "🏠 ホーム":
         home_page()
+    elif page == "👤 プロフィール設定":
+        profile_setting_page()
+    elif page == "❓ ヘルプ":
+        help_page()
     elif page == "🎯 統合ワークフロー":
         integrated_workflow_page()
     elif page == "🏢 企業分析":
         company_analysis_page()
-    elif page == "👤 業界適性診断":
-        industry_matching_page()
     elif page == "📝 ES生成・改善":
         essay_generation_page()
     elif page == "💬 面接対策":
@@ -120,64 +122,108 @@ def integrated_workflow_page():
         st.divider()
         st.subheader("2️⃣ あなたのパーソナリティ定義")
         
-        with st.form("personality_form"):
-            col1, col2 = st.columns(2)
+        # プロフィール設定の確認
+        if 'user_profile' in st.session_state and st.session_state.user_profile:
+            profile = st.session_state.user_profile
+            st.info(f"📋 プロフィール設定済み: {profile.get('name', 'ユーザー')}さん")
             
-            with col1:
-                strengths = st.text_area("💪 あなたの強み・特徴", key="personality_strengths")
-                experiences = st.text_area("📚 主な経験・活動", key="personality_experiences")
-                values = st.text_area("⭐ 大切にしている価値観", key="personality_values")
-            
-            with col2:
-                goals = st.text_area("🎯 将来の目標・やりたいこと", key="personality_goals")
-                leadership = st.text_area("👥 リーダーシップ経験", key="personality_leadership")
-                problem_solving = st.text_area("🔧 問題解決の経験", key="personality_problem_solving")
-            
-            if st.form_submit_button("📊 パーソナリティ分析実行", type="primary"):
-                if strengths and experiences:
-                    user_info = {
-                        "strengths": strengths,
-                        "experiences": experiences,
-                        "values": values,
-                        "goals": goals,
-                        "leadership": leadership,
-                        "problem_solving": problem_solving
-                    }
+            if st.button("🔍 プロフィールを基にパーソナリティ分析実行", type="primary"):
+                with st.spinner("プロフィール情報を基にパーソナリティを分析中..."):
+                    result = st.session_state.workflow.define_user_personality()
                     
-                    with st.spinner("パーソナリティを分析中..."):
-                        result = st.session_state.workflow.define_user_personality(user_info)
+                    if result.get("status") == "success":
+                        st.success("✅ パーソナリティ分析完了！")
                         
-                        if result.get("status") == "success":
-                            st.success("✅ パーソナリティ分析完了！")
+                        user_personality = result["user_personality"]
+                        if "current_personality" in user_personality:
+                            personality = user_personality["current_personality"]
                             
-                            user_personality = result["user_personality"]
-                            if "current_personality" in user_personality:
-                                personality = user_personality["current_personality"]
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.write("**💭 あなたの価値観:**")
+                                for value in personality.get("values", []):
+                                    st.write(f"• {value}")
                                 
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    st.write("**💭 あなたの価値観:**")
-                                    for value in personality.get("values", []):
-                                        st.write(f"• {value}")
-                                    
-                                    st.write("**🎯 あなたの行動特性:**")
-                                    for trait in personality.get("behavioral_traits", []):
-                                        st.write(f"• {trait}")
-                                
-                                with col2:
-                                    st.write("**💪 現在の強み:**")
-                                    for strength in user_personality.get("strengths", []):
-                                        st.write(f"• {strength}")
-                                    
-                                    st.write("**🌱 成長領域:**")
-                                    for area in user_personality.get("development_areas", []):
-                                        st.write(f"• {area}")
+                                st.write("**🎯 あなたの行動特性:**")
+                                for trait in personality.get("behavioral_traits", []):
+                                    st.write(f"• {trait}")
                             
-                            st.session_state.workflow_step = 3
+                            with col2:
+                                st.write("**💪 現在の強み:**")
+                                for strength in user_personality.get("strengths", []):
+                                    st.write(f"• {strength}")
+                                
+                                st.write("**🌱 成長領域:**")
+                                for area in user_personality.get("development_areas", []):
+                                    st.write(f"• {area}")
+                        
+                        st.session_state.workflow_step = 3
+                    else:
+                        st.error(f"❌ エラー: {result.get('error')}")
+        else:
+            st.warning("⚠️ プロフィール設定が必要です")
+            st.info("👤 左メニューの「プロフィール設定」で基本情報を入力してから、パーソナリティ分析を実行してください。")
+            
+            # 手動入力オプション
+            with st.expander("✏️ 手動でパーソナリティ情報を入力"):
+                with st.form("personality_form"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        strengths = st.text_area("💪 あなたの強み・特徴", key="personality_strengths")
+                        experiences = st.text_area("📚 主な経験・活動", key="personality_experiences")
+                        values = st.text_area("⭐ 大切にしている価値観", key="personality_values")
+                    
+                    with col2:
+                        goals = st.text_area("🎯 将来の目標・やりたいこと", key="personality_goals")
+                        leadership = st.text_area("👥 リーダーシップ経験", key="personality_leadership")
+                        problem_solving = st.text_area("🔧 問題解決の経験", key="personality_problem_solving")
+                    
+                    if st.form_submit_button("📊 手動パーソナリティ分析実行", type="primary"):
+                        if strengths and experiences:
+                            user_info = {
+                                "strengths": strengths,
+                                "experiences": experiences,
+                                "values": values,
+                                "goals": goals,
+                                "leadership": leadership,
+                                "problem_solving": problem_solving
+                            }
+                            
+                            with st.spinner("パーソナリティを分析中..."):
+                                result = st.session_state.workflow.define_user_personality(user_info)
+                                
+                                if result.get("status") == "success":
+                                    st.success("✅ パーソナリティ分析完了！")
+                                    
+                                    user_personality = result["user_personality"]
+                                    if "current_personality" in user_personality:
+                                        personality = user_personality["current_personality"]
+                                        
+                                        col1, col2 = st.columns(2)
+                                        with col1:
+                                            st.write("**💭 あなたの価値観:**")
+                                            for value in personality.get("values", []):
+                                                st.write(f"• {value}")
+                                            
+                                            st.write("**🎯 あなたの行動特性:**")
+                                            for trait in personality.get("behavioral_traits", []):
+                                                st.write(f"• {trait}")
+                                        
+                                        with col2:
+                                            st.write("**💪 現在の強み:**")
+                                            for strength in user_personality.get("strengths", []):
+                                                st.write(f"• {strength}")
+                                            
+                                            st.write("**🌱 成長領域:**")
+                                            for area in user_personality.get("development_areas", []):
+                                                st.write(f"• {area}")
+                                    
+                                    st.session_state.workflow_step = 3
+                                else:
+                                    st.error(f"❌ エラー: {result.get('error')}")
                         else:
-                            st.error(f"❌ エラー: {result.get('error')}")
-                else:
-                    st.error("強みと経験は必須入力です")
+                            st.error("強みと経験は必須入力です")
     
     # Step 3: ギャップ分析
     if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 3:
@@ -329,47 +375,398 @@ def integrated_workflow_page():
                     st.error(f"❌ エラー: {result.get('error')}")
 
 def home_page():
-    st.header("🏠 就活AIコンパス へようこそ")
+    st.header("🎯 就活AIコンパス")
+    st.markdown("**AI があなたの就活を成功に導きます**")
+    
+    # プロフィール確認
+    if 'user_profile' not in st.session_state:
+        st.warning("⚠️ まずは「👤 プロフィール設定」で基本情報を入力してください")
+    else:
+        profile = st.session_state.user_profile
+        st.success(f"👋 {profile.get('name', 'ユーザー')}さん、こんにちは！")
+    
+    st.divider()
+    
+    # メイン機能: 企業分析
+    st.subheader("🏢 企業分析を開始")
+    st.markdown("志望企業を入力して、AI による包括的な企業分析と就活準備を始めましょう")
+    
+    # 企業名入力
+    company_name = st.text_input(
+        "🏢 企業名を入力してください",
+        placeholder="例: トヨタ自動車、ソフトバンク、三菱商事",
+        key="home_company_input"
+    )
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("🎯 新機能: 統合ワークフロー")
-        st.markdown("""
-        **企業分析から始まる一貫したプロセス:**
-        
-        **1. 🏢 企業分析 → 求める人物像特定**
-        **2. 👤 あなたのパーソナリティ定義**
-        **3. 🔍 ギャップ分析・改善提案**
-        **4. 📝 最適化されたES生成**
-        **5. 💬 戦略的面接対策**
-        
-        すべてが繋がった効果的な就活準備が可能です！
-        """)
-        
-        st.info("🚀 **おすすめ**: 「統合ワークフロー」で体系的な就活準備を始めましょう！")
+        if st.button("🚀 完全分析開始", type="primary", use_container_width=True):
+            if company_name:
+                if 'user_profile' in st.session_state:
+                    # ワークフローを開始
+                    st.session_state.selected_company = company_name
+                    st.session_state.workflow_active = True
+                    st.success(f"✅ {company_name} の分析を開始します")
+                    st.info("📋 左メニューの「🎯 統合ワークフロー」で詳細な分析結果を確認してください")
+                    
+                    # ワークフロー開始
+                    with st.spinner("企業分析を実行中..."):
+                        result = st.session_state.workflow.start_workflow(company_name)
+                        
+                        if result.get("status") == "success":
+                            st.success("🎉 企業分析完了！統合ワークフローで続きを進めてください")
+                        else:
+                            st.error(f"❌ エラー: {result.get('error', '不明なエラー')}")
+                else:
+                    st.error("❌ 先にプロフィール設定を完了してください")
+            else:
+                st.error("❌ 企業名を入力してください")
     
     with col2:
-        st.subheader("🛠 個別機能")
+        if st.button("🔍 簡易分析", use_container_width=True):
+            if company_name:
+                st.info("📋 左メニューの「🏢 企業分析」で個別分析を実行してください")
+            else:
+                st.error("❌ 企業名を入力してください")
+    
+    st.divider()
+    
+    # 機能紹介（簡潔版）
+    st.subheader("🌟 主な機能")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
         st.markdown("""
-        **🏢 企業分析AI**
-        - IR情報の自動分析
-        - 企業の強み・弱み抽出
+        **🎯 統合ワークフロー**
         
-        **👤 業界適性診断**
-        - 10業界との適性マッチング
-        - キャリアパス提案
-        
-        **📝 ES生成・改善**
-        - AI による文章生成
-        - 添削・改善提案
-        
-        **💬 面接対策**
-        - 想定質問生成
-        - 模擬面接フィードバック
+        企業分析→パーソナリティ分析→ES生成→面接対策まで一貫サポート
         """)
+    
+    with col2:
+        st.markdown("""
+        **👤 プロフィール管理**
         
-        st.success("💡 各機能は単独でも利用可能です")
+        大学・学部・部活・ガクチカなど基本情報を一元管理
+        """)
+    
+    with col3:
+        st.markdown("""
+        **🤖 AI支援**
+        
+        Claude AI が最適な就活戦略とコンテンツを自動生成
+        """)
+    
+    # 使い方ガイド
+    with st.expander("📖 使い方ガイド"):
+        st.markdown("""
+        **1. プロフィール設定** 👤
+        - 大学・学部・学科情報
+        - 部活動・サークル活動
+        - ガクチカ・志望業界
+        
+        **2. 企業分析開始** 🏢
+        - ホーム画面で企業名を入力
+        - 「完全分析開始」をクリック
+        
+        **3. ワークフロー実行** 🎯
+        - 統合ワークフローで段階的に進行
+        - パーソナリティ分析・ギャップ分析
+        - ES生成・面接対策まで完了
+        
+        詳しくは「❓ ヘルプ」をご覧ください。
+        """)
+
+def profile_setting_page():
+    st.header("👤 プロフィール設定")
+    st.markdown("あなたの基本情報を入力してください。この情報を基にAIがパーソナライズされた就活支援を提供します。")
+    
+    # プロフィール初期化
+    if 'user_profile' not in st.session_state:
+        st.session_state.user_profile = {}
+    
+    with st.form("profile_form"):
+        st.subheader("📚 基本情報")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            name = st.text_input(
+                "👤 お名前",
+                value=st.session_state.user_profile.get('name', ''),
+                placeholder="山田太郎"
+            )
+            
+            university = st.text_input(
+                "🏫 大学名",
+                value=st.session_state.user_profile.get('university', ''),
+                placeholder="例: 東京大学"
+            )
+            
+            faculty = st.text_input(
+                "📖 学部",
+                value=st.session_state.user_profile.get('faculty', ''),
+                placeholder="例: 経済学部"
+            )
+            
+            department = st.text_input(
+                "🔬 学科",
+                value=st.session_state.user_profile.get('department', ''),
+                placeholder="例: 経済学科"
+            )
+            
+            graduation_year = st.selectbox(
+                "🎓 卒業予定年",
+                options=[2024, 2025, 2026, 2027, 2028],
+                index=1 if st.session_state.user_profile.get('graduation_year') == 2025 else 0
+            )
+        
+        with col2:
+            club_activities = st.text_area(
+                "⚽ 部活動・サークル",
+                value=st.session_state.user_profile.get('club_activities', ''),
+                placeholder="例: テニス部（4年間）、ボランティアサークル",
+                height=100
+            )
+            
+            part_time_job = st.text_area(
+                "💼 アルバイト経験",
+                value=st.session_state.user_profile.get('part_time_job', ''),
+                placeholder="例: 塾講師（2年間）、カフェスタッフ",
+                height=100
+            )
+            
+            internship = st.text_area(
+                "🏢 インターン経験",
+                value=st.session_state.user_profile.get('internship', ''),
+                placeholder="例: IT企業でのエンジニアインターン（3ヶ月）",
+                height=100
+            )
+        
+        st.subheader("🌟 自己分析")
+        
+        gakuchika = st.text_area(
+            "📈 学生時代に力を入れたこと（ガクチカ）",
+            value=st.session_state.user_profile.get('gakuchika', ''),
+            placeholder="具体的なエピソードと成果を記入してください",
+            height=150
+        )
+        
+        strengths = st.text_area(
+            "💪 あなたの強み",
+            value=st.session_state.user_profile.get('strengths', ''),
+            placeholder="例: リーダーシップ、分析力、コミュニケーション力",
+            height=100
+        )
+        
+        values = st.text_area(
+            "⭐ 大切にしている価値観",
+            value=st.session_state.user_profile.get('values', ''),
+            placeholder="例: 成長、チームワーク、社会貢献",
+            height=100
+        )
+        
+        career_goals = st.text_area(
+            "🎯 将来の目標・やりたいこと",
+            value=st.session_state.user_profile.get('career_goals', ''),
+            placeholder="将来どのようなキャリアを歩みたいか",
+            height=100
+        )
+        
+        st.subheader("🏭 志望業界・職種")
+        
+        target_industries = st.multiselect(
+            "🎯 志望業界",
+            options=[
+                "IT・ソフトウェア", "金融・銀行", "コンサルティング", 
+                "メーカー・製造業", "商社・流通", "インフラ・公共",
+                "メディア・広告", "医療・ヘルスケア", "不動産・建設", "教育・研究"
+            ],
+            default=st.session_state.user_profile.get('target_industries', [])
+        )
+        
+        job_types = st.multiselect(
+            "💼 志望職種",
+            options=[
+                "営業", "マーケティング", "企画", "経営企画", "人事",
+                "財務・経理", "エンジニア", "研究開発", "コンサルタント", "その他"
+            ],
+            default=st.session_state.user_profile.get('job_types', [])
+        )
+        
+        if st.form_submit_button("💾 プロフィール保存", type="primary"):
+            # プロフィールデータを保存
+            st.session_state.user_profile = {
+                'name': name,
+                'university': university,
+                'faculty': faculty,
+                'department': department,
+                'graduation_year': graduation_year,
+                'club_activities': club_activities,
+                'part_time_job': part_time_job,
+                'internship': internship,
+                'gakuchika': gakuchika,
+                'strengths': strengths,
+                'values': values,
+                'career_goals': career_goals,
+                'target_industries': target_industries,
+                'job_types': job_types
+            }
+            
+            st.success("✅ プロフィールが保存されました！")
+            st.info("🏠 ホーム画面で企業分析を開始できます")
+    
+    # 現在のプロフィール表示
+    if st.session_state.user_profile:
+        st.divider()
+        st.subheader("📋 現在のプロフィール")
+        
+        profile = st.session_state.user_profile
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if profile.get('name'):
+                st.write(f"**👤 名前:** {profile['name']}")
+            if profile.get('university'):
+                st.write(f"**🏫 大学:** {profile['university']} {profile.get('faculty', '')} {profile.get('department', '')}")
+            if profile.get('graduation_year'):
+                st.write(f"**🎓 卒業予定:** {profile['graduation_year']}年")
+        
+        with col2:
+            if profile.get('target_industries'):
+                st.write(f"**🎯 志望業界:** {', '.join(profile['target_industries'])}")
+            if profile.get('job_types'):
+                st.write(f"**💼 志望職種:** {', '.join(profile['job_types'])}")
+
+def help_page():
+    st.header("❓ ヘルプ")
+    st.markdown("就活AIコンパスの使い方を説明します")
+    
+    # FAQ形式
+    with st.expander("🚀 はじめ方", expanded=True):
+        st.markdown("""
+        **1. プロフィール設定**
+        - 左メニューの「👤 プロフィール設定」から基本情報を入力
+        - 大学・学部・ガクチカ・強みなどを詳しく記入
+        
+        **2. 企業分析開始**
+        - ホーム画面で志望企業名を入力
+        - 「🚀 完全分析開始」をクリック
+        
+        **3. ワークフロー実行**
+        - 「🎯 統合ワークフロー」で段階的に進行
+        - AI がパーソナライズされた就活支援を提供
+        """)
+    
+    with st.expander("🎯 統合ワークフローとは？"):
+        st.markdown("""
+        企業分析から面接対策まで一貫した就活準備プロセスです：
+        
+        **1. 🏢 企業分析**
+        - IR情報や事業戦略の自動分析
+        - 企業が求める人物像の特定
+        
+        **2. 👤 パーソナリティ分析**
+        - あなたの特性と企業要求の比較
+        - ギャップの特定と改善提案
+        
+        **3. 📝 ES生成**
+        - ギャップ分析を反映した最適なES作成
+        - 自己PR・志望動機の自動生成
+        
+        **4. 💬 面接対策**
+        - 企業特化の想定質問生成
+        - 戦略的な回答準備
+        """)
+    
+    with st.expander("👤 プロフィール設定のコツ"):
+        st.markdown("""
+        **詳細に記入するほど精度が向上します：**
+        
+        **ガクチカ記入のポイント:**
+        - 具体的な数値・成果を含める
+        - 困難や課題とその解決方法
+        - 学んだことや成長した点
+        
+        **強み記入のポイント:**
+        - エピソードと関連付ける
+        - 客観的な評価があれば記載
+        - 企業でどう活かせるかも考える
+        
+        **価値観記入のポイント:**
+        - なぜその価値観を大切にするのか
+        - 行動にどう表れているか
+        """)
+    
+    with st.expander("🏢 企業分析の活用方法"):
+        st.markdown("""
+        **分析結果の見方:**
+        - 企業の強み・弱み・戦略を把握
+        - 求める人物像を理解
+        - 業界内のポジションを確認
+        
+        **活用方法:**
+        - 志望動機の材料として活用
+        - 面接での質問準備
+        - 企業研究の効率化
+        
+        **注意点:**
+        - 情報は参考程度に留める
+        - 最新情報は公式サイトで確認
+        - 複数の企業を比較検討
+        """)
+    
+    with st.expander("📝 ES・面接対策のポイント"):
+        st.markdown("""
+        **ES生成機能:**
+        - AI が最適な構成を提案
+        - ギャップ分析を反映した内容
+        - コピー＆ペースト可能な形式
+        
+        **面接対策機能:**
+        - 企業・業界特化の想定質問
+        - パーソナリティに基づく回答戦略
+        - 強みのアピール方法を提案
+        
+        **改善のコツ:**
+        - AI の提案を参考に自分なりにアレンジ
+        - 実際の経験と照らし合わせて修正
+        - 複数パターンを用意
+        """)
+    
+    with st.expander("🔧 トラブルシューティング"):
+        st.markdown("""
+        **よくある問題と解決方法:**
+        
+        **企業分析が失敗する場合:**
+        - 企業名を正確に入力（上場企業名推奨）
+        - しばらく時間をおいて再試行
+        
+        **プロフィールが保存されない場合:**
+        - 必須項目（名前・大学など）を入力
+        - ブラウザをリフレッシュして再試行
+        
+        **ワークフローが進まない場合:**
+        - 前のステップが完了しているか確認
+        - プロフィール設定が済んでいるか確認
+        
+        **その他の問題:**
+        - ページをリフレッシュしてみる
+        - 別のブラウザで試してみる
+        """)
+    
+    st.divider()
+    
+    st.subheader("📧 お問い合わせ")
+    st.markdown("""
+    その他ご質問やバグの報告は、GitHubのIssuesページまでお願いします。
+    
+    🔗 **GitHub Repository**: https://github.com/Ume614/shukatsuai
+    """)
+    
+    st.info("💡 **ヒント**: プロフィール設定を詳しく記入するほど、AIの分析精度が向上します！")
 
 def company_analysis_page():
     st.header("🏢 企業分析AI")
