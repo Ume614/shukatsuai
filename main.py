@@ -28,7 +28,7 @@ def main():
     st.sidebar.title("📋 メニュー")
     page = st.sidebar.selectbox(
         "機能選択",
-        ["🏠 ホーム", "👤 プロフィール設定", "❓ ヘルプ", "🎯 統合ワークフロー", "🏢 企業分析", "📝 ES生成・改善", "💬 面接対策"]
+        ["🏠 ホーム", "👤 プロフィール設定", "❓ ヘルプ"]
     )
     
     if page == "🏠 ホーム":
@@ -37,14 +37,6 @@ def main():
         profile_setting_page()
     elif page == "❓ ヘルプ":
         help_page()
-    elif page == "🎯 統合ワークフロー":
-        integrated_workflow_page()
-    elif page == "🏢 企業分析":
-        company_analysis_page()
-    elif page == "📝 ES生成・改善":
-        essay_generation_page()
-    elif page == "💬 面接対策":
-        interview_prep_page()
 
 def integrated_workflow_page():
     st.header("🎯 統合ワークフロー")
@@ -408,14 +400,15 @@ def home_page():
                     st.session_state.selected_company = company_name
                     st.session_state.workflow_active = True
                     st.success(f"✅ {company_name} の分析を開始します")
-                    st.info("📋 左メニューの「🎯 統合ワークフロー」で詳細な分析結果を確認してください")
                     
                     # ワークフロー開始
                     with st.spinner("企業分析を実行中..."):
                         result = st.session_state.workflow.start_workflow(company_name)
                         
                         if result.get("status") == "success":
-                            st.success("🎉 企業分析完了！統合ワークフローで続きを進めてください")
+                            st.success("🎉 企業分析完了！詳細ワークフローで続きを進めてください")
+                            st.session_state.show_detailed_workflow = True
+                            st.rerun()
                         else:
                             st.error(f"❌ エラー: {result.get('error', '不明なエラー')}")
                 else:
@@ -424,9 +417,16 @@ def home_page():
                 st.error("❌ 企業名を入力してください")
     
     with col2:
-        if st.button("🔍 簡易分析", use_container_width=True):
+        if st.button("🔍 詳細ワークフロー", use_container_width=True):
             if company_name:
-                st.info("📋 左メニューの「🏢 企業分析」で個別分析を実行してください")
+                if 'user_profile' in st.session_state:
+                    # ワークフローを開始してセッション状態を設定
+                    st.session_state.selected_company = company_name
+                    st.session_state.show_detailed_workflow = True
+                    st.success(f"✅ {company_name} の詳細ワークフローを開始します")
+                    st.rerun()
+                else:
+                    st.error("❌ 先にプロフィール設定を完了してください")
             else:
                 st.error("❌ 企業名を入力してください")
     
@@ -477,6 +477,270 @@ def home_page():
         
         詳しくは「❓ ヘルプ」をご覧ください。
         """)
+    
+    # 詳細ワークフローの表示
+    if st.session_state.get('show_detailed_workflow', False):
+        st.divider()
+        st.subheader("📋 詳細ワークフロー")
+        integrated_workflow_content()
+
+def integrated_workflow_content():
+    """統合ワークフローのコンテンツ（タイトルなし）"""
+    # プロセス表示
+    st.markdown("**企業分析から始まる一貫した就活準備プロセス**")
+    
+    process_steps = [
+        "1️⃣ 企業分析 → 企業が求める人物像を特定",
+        "2️⃣ パーソナリティ定義 → あなたの現在の特性を分析", 
+        "3️⃣ ギャップ分析 → 理想と現実の差を明確化",
+        "4️⃣ ES生成 → ギャップを踏まえた最適なES作成",
+        "5️⃣ 面接対策 → 戦略的な面接準備"
+    ]
+    
+    for step in process_steps:
+        st.write(step)
+    
+    st.divider()
+    
+    # Step 1: 企業分析結果表示（既に実行済みの場合）
+    if st.session_state.workflow.workflow_state.get("company_analysis"):
+        st.subheader("1️⃣ 企業分析結果")
+        
+        company_analysis = st.session_state.workflow.workflow_state["company_analysis"]
+        st.success("✅ 企業分析完了！")
+        
+        # 企業分析結果
+        with st.expander("🏢 企業分析結果", expanded=True):
+            st.json(company_analysis)
+        
+        # 求める人物像
+        required_personality = st.session_state.workflow.workflow_state.get("required_personality")
+        if required_personality:
+            with st.expander("👤 この企業が求める人物像", expanded=True):
+                if "required_personality" in required_personality:
+                    personality = required_personality["required_personality"]
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write("**💭 重視する価値観:**")
+                        for value in personality.get("values", []):
+                            st.write(f"• {value}")
+                        
+                        st.write("**🎯 求める行動特性:**")
+                        for trait in personality.get("behavioral_traits", []):
+                            st.write(f"• {trait}")
+                    
+                    with col2:
+                        st.write("**🛠 必要なスキル:**")
+                        for skill in personality.get("skills", []):
+                            st.write(f"• {skill}")
+                        
+                        st.write("**💬 コミュニケーション:**")
+                        st.write(personality.get("communication_style", ""))
+                
+                if "key_interview_points" in required_personality:
+                    st.write("**❓ 面接重要ポイント:**")
+                    for point in required_personality["key_interview_points"]:
+                        st.write(f"• {point}")
+        
+        st.session_state.workflow_step = 2
+    
+    # 統合ワークフローの残りの部分をここに移動
+    # Step 2以降のワークフロー処理
+    if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 2:
+        st.divider()
+        st.subheader("2️⃣ あなたのパーソナリティ定義")
+        
+        # プロフィール設定の確認
+        if 'user_profile' in st.session_state and st.session_state.user_profile:
+            profile = st.session_state.user_profile
+            st.info(f"📋 プロフィール設定済み: {profile.get('name', 'ユーザー')}さん")
+            
+            if st.button("🔍 プロフィールを基にパーソナリティ分析実行", type="primary", key="workflow_personality"):
+                with st.spinner("プロフィール情報を基にパーソナリティを分析中..."):
+                    result = st.session_state.workflow.define_user_personality()
+                    
+                    if result.get("status") == "success":
+                        st.success("✅ パーソナリティ分析完了！")
+                        
+                        user_personality = result["user_personality"]
+                        if "current_personality" in user_personality:
+                            personality = user_personality["current_personality"]
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.write("**💭 あなたの価値観:**")
+                                for value in personality.get("values", []):
+                                    st.write(f"• {value}")
+                                
+                                st.write("**🎯 あなたの行動特性:**")
+                                for trait in personality.get("behavioral_traits", []):
+                                    st.write(f"• {trait}")
+                            
+                            with col2:
+                                st.write("**💪 現在の強み:**")
+                                for strength in user_personality.get("strengths", []):
+                                    st.write(f"• {strength}")
+                                
+                                st.write("**🌱 成長領域:**")
+                                for area in user_personality.get("development_areas", []):
+                                    st.write(f"• {area}")
+                        
+                        st.session_state.workflow_step = 3
+                    else:
+                        st.error(f"❌ エラー: {result.get('error')}")
+        else:
+            st.warning("⚠️ プロフィール設定が必要です")
+            st.info("👤 左メニューの「プロフィール設定」で基本情報を入力してから、パーソナリティ分析を実行してください。")
+    
+    # Step 3: ギャップ分析
+    if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 3:
+        st.divider()
+        st.subheader("3️⃣ ギャップ分析・改善提案")
+        
+        if st.button("🔍 ギャップ分析実行", type="primary", key="workflow_gap"):
+            with st.spinner("ギャップ分析を実行中..."):
+                result = st.session_state.workflow.analyze_personality_gap()
+                
+                if result.get("status") == "success":
+                    st.success("✅ ギャップ分析完了！")
+                    
+                    gap_analysis = result["gap_analysis"]
+                    
+                    # 適合度スコア
+                    if "overall_fit_score" in gap_analysis:
+                        score = gap_analysis["overall_fit_score"]
+                        st.metric("🎯 適合度スコア", f"{score}/100")
+                        st.write(gap_analysis.get("fit_assessment", ""))
+                    
+                    # 強み（一致点）
+                    if "gap_analysis" in gap_analysis and "strengths_match" in gap_analysis["gap_analysis"]:
+                        st.write("**✅ あなたの強み（企業要求と一致）:**")
+                        for match in gap_analysis["gap_analysis"]["strengths_match"]:
+                            st.success(f"**{match.get('area', '')}**: {match.get('description', '')}")
+                            st.write(f"💡 面接アピール: {match.get('interview_appeal', '')}")
+                    
+                    # ギャップ（改善点）
+                    if "gap_analysis" in gap_analysis and "gaps_identified" in gap_analysis["gap_analysis"]:
+                        st.write("**⚠️ 改善が必要な領域:**")
+                        for gap in gap_analysis["gap_analysis"]["gaps_identified"]:
+                            severity_color = {"high": "🔴", "medium": "🟡", "low": "🟢"}
+                            icon = severity_color.get(gap.get("gap_severity", "medium"), "🟡")
+                            
+                            st.warning(f"{icon} **{gap.get('area', '')}**")
+                            st.write(f"現在: {gap.get('current_state', '')}")
+                            st.write(f"求められる状態: {gap.get('required_state', '')}")
+                    
+                    # 改善プラン
+                    if "improvement_plan" in gap_analysis:
+                        plan = gap_analysis["improvement_plan"]
+                        
+                        st.write("**📈 改善アクションプラン:**")
+                        
+                        if "immediate_actions" in plan:
+                            st.write("*すぐに取り組むべき行動:*")
+                            for action in plan["immediate_actions"]:
+                                st.write(f"• **{action.get('action', '')}** ({action.get('timeline', '')})")
+                                st.write(f"  方法: {action.get('method', '')}")
+                        
+                        if "medium_term_goals" in plan:
+                            st.write("*中期目標:*")
+                            for goal in plan["medium_term_goals"]:
+                                st.write(f"• **{goal.get('goal', '')}** ({goal.get('timeline', '')})")
+                    
+                    st.session_state.workflow_step = 4
+                else:
+                    st.error(f"❌ エラー: {result.get('error')}")
+    
+    # Step 4: ES生成
+    if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 4:
+        st.divider()
+        st.subheader("4️⃣ 最適化されたES生成")
+        
+        if st.button("📝 ES生成実行", type="primary", key="workflow_essay"):
+            with st.spinner("ギャップ分析を反映したESを生成中..."):
+                result = st.session_state.workflow.generate_tailored_essays()
+                
+                if result.get("status") == "success":
+                    st.success("✅ ES生成完了！")
+                    
+                    essays = result["essays"]
+                    
+                    # 自己PR
+                    if "self_pr" in essays:
+                        st.write("**📄 自己PR:**")
+                        self_pr = essays["self_pr"]
+                        if isinstance(self_pr, dict) and "self_pr" in self_pr:
+                            st.write(self_pr["self_pr"])
+                            st.text_area("📋 自己PRコピー用", value=self_pr["self_pr"], height=150, key="copy_self_pr")
+                        else:
+                            st.write(self_pr)
+                    
+                    # 志望動機
+                    if "motivation" in essays:
+                        st.write("**🎯 志望動機:**")
+                        st.write(essays["motivation"])
+                        st.text_area("📋 志望動機コピー用", value=essays["motivation"], height=150, key="copy_motivation")
+                    
+                    st.session_state.workflow_step = 5
+                else:
+                    st.error(f"❌ エラー: {result.get('error')}")
+    
+    # Step 5: 面接対策
+    if hasattr(st.session_state, 'workflow_step') and st.session_state.workflow_step >= 5:
+        st.divider()
+        st.subheader("5️⃣ 戦略的面接対策")
+        
+        if st.button("💬 面接対策生成", type="primary", key="workflow_interview"):
+            with st.spinner("面接戦略を準備中..."):
+                result = st.session_state.workflow.prepare_interview_strategy()
+                
+                if result.get("status") == "success":
+                    st.success("✅ 面接対策完了！")
+                    
+                    interview_prep = result["interview_preparation"]
+                    
+                    # 想定質問
+                    if "questions" in interview_prep:
+                        st.write("**❓ 想定面接質問:**")
+                        questions = interview_prep["questions"]
+                        
+                        categories = {}
+                        for q in questions:
+                            category = q.get("category", "その他")
+                            if category not in categories:
+                                categories[category] = []
+                            categories[category].append(q)
+                        
+                        for category, qs in categories.items():
+                            with st.expander(f"📋 {category} ({len(qs)}問)"):
+                                for i, q in enumerate(qs, 1):
+                                    difficulty_color = {"低": "🟢", "中": "🟡", "高": "🔴"}
+                                    difficulty_icon = difficulty_color.get(q.get("difficulty", "中"), "⚪")
+                                    st.write(f"{i}. {difficulty_icon} {q['question']}")
+                    
+                    # 面接戦略
+                    if "strategy" in interview_prep:
+                        strategy = interview_prep["strategy"]
+                        
+                        if "highlight_strengths" in strategy:
+                            st.write("**💪 面接でアピールすべき強み:**")
+                            for strength in strategy["highlight_strengths"]:
+                                st.write(f"• {strength}")
+                        
+                        if "address_gaps" in strategy:
+                            st.write("**🔧 ギャップへの対処法:**")
+                            for gap in strategy["address_gaps"]:
+                                st.write(f"• {gap}")
+                    
+                    # 改善プラン
+                    if "development_plan" in interview_prep:
+                        st.write("**📈 パーソナリティ改善プラン:**")
+                        st.write(interview_prep["development_plan"])
+                    
+                    st.success("🎉 **ワークフロー完了！** 準備が整いました。")
+                else:
+                    st.error(f"❌ エラー: {result.get('error')}")
 
 def profile_setting_page():
     st.header("👤 プロフィール設定")
