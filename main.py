@@ -506,50 +506,51 @@ def integrated_workflow_content():
         company_analysis = st.session_state.workflow.workflow_state["company_analysis"]
         st.success("✅ 企業分析完了！")
         
-        # 企業分析レポート（フォーマット完全解除）
-        st.write("企業分析完了")
-        
-        # リセットボタン
-        if st.button("分析をリセット"):
-            st.session_state.workflow.workflow_state["company_analysis"] = None
-            st.session_state.workflow.workflow_state["required_personality"] = None
-            st.session_state.workflow_step = 1
-            st.write("リセット完了")
-            st.rerun()
-        
-        # 企業基本情報
-        if company_analysis.get("basic_info"):
-            st.write("企業基本情報")
-            basic_info = company_analysis["basic_info"]
-            st.write(f"企業名: {basic_info.get('name', 'N/A')}")
-            st.write(f"業界: {basic_info.get('industry', 'N/A')}")
-            st.write(f"事業概要: {basic_info.get('description', 'N/A')}")
-        
-        # 財務・事業状況
-        if company_analysis.get("ir_summary"):
-            st.write("財務・事業状況")
-            ir_data = company_analysis["ir_summary"]
-            st.write(f"売上動向: {ir_data.get('revenue_trend', 'N/A')}")
-            st.write(f"利益動向: {ir_data.get('profit_trend', 'N/A')}")
-            
-            if ir_data.get("key_initiatives"):
-                st.write("重点施策:")
-                for initiative in ir_data["key_initiatives"]:
-                    st.write(f"- {initiative}")
-            
-            if ir_data.get("challenges"):
-                st.write("主要課題:")
-                for challenge in ir_data["challenges"]:
-                    st.write(f"- {challenge}")
-        
-        # AI戦略分析
+        # 🧠 AI企業分析レポート（かっこいいレイアウト）
         if company_analysis.get("ai_analysis"):
-            st.write("AI戦略分析")
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 2rem;
+                border-radius: 15px;
+                margin: 2rem 0;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            ">
+                <h2 style="
+                    color: white;
+                    text-align: center;
+                    margin-bottom: 2rem;
+                    font-size: 2rem;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                ">🧠 AI企業分析レポート</h2>
+            </div>
+            """, unsafe_allow_html=True)
+            
             ai_analysis = company_analysis["ai_analysis"]
             
             if isinstance(ai_analysis, str):
-                st.text(ai_analysis)
+                # テキスト形式の場合、整形して表示
+                lines = ai_analysis.split('\n')
+                content = ""
+                
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    # タイトル行の判定
+                    if (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')) or
+                        line.startswith(('##', '**')) or
+                        line.startswith(('○', '●', '・', '◆', '◇')) or
+                        '：' in line[:20] or ':' in line[:20]):
+                        content += f"\n\n### 🎯 {line}\n\n"
+                    else:
+                        content += f"{line}\n\n"
+                
+                st.markdown(content)
+                
             else:
+                # JSON形式の場合
                 try:
                     import json
                     if isinstance(ai_analysis, dict):
@@ -557,16 +558,36 @@ def integrated_workflow_content():
                     else:
                         analysis_data = json.loads(ai_analysis)
                     
+                    # 見出しとアイコンのマッピング
+                    section_icons = {
+                        "strengths": "💪",
+                        "weaknesses": "⚠️", 
+                        "opportunities": "🌟",
+                        "competitive_position": "🎯",
+                        "threats": "🚨",
+                        "analysis": "📊",
+                        "summary": "📝",
+                        "conclusion": "🔍"
+                    }
+                    
                     for key, value in analysis_data.items():
-                        st.write(f"{key}:")
+                        icon = section_icons.get(key.lower(), "📌")
+                        
+                        # セクションタイトル
+                        st.markdown(f"### {icon} {key.replace('_', ' ').title()}")
+                        
                         if isinstance(value, list):
                             for item in value:
-                                st.write(f"- {item}")
+                                st.markdown(f"• {item}")
                         else:
-                            st.write(value)
+                            st.markdown(value)
+                        
+                        st.markdown("---")
                 
                 except (json.JSONDecodeError, TypeError):
-                    st.text(str(ai_analysis))
+                    # JSON解析失敗時
+                    clean_text = str(ai_analysis).replace('{', '').replace('}', '').replace('"', '').replace('[', '').replace(']', '')
+                    st.markdown(clean_text)
         
         # 求める人物像（フォーマット完全解除）
         required_personality = st.session_state.workflow.workflow_state.get("required_personality")
