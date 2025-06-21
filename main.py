@@ -506,7 +506,7 @@ def integrated_workflow_content():
         company_analysis = st.session_state.workflow.workflow_state["company_analysis"]
         st.success("✅ 企業分析完了！")
         
-        # 🧠 AI企業分析レポート（かっこいいレイアウト）
+        # 🧠 AI企業分析レポート（段組みレイアウト）
         if company_analysis.get("ai_analysis"):
             st.markdown("""
             <div style="
@@ -528,29 +528,50 @@ def integrated_workflow_content():
             
             ai_analysis = company_analysis["ai_analysis"]
             
-            if isinstance(ai_analysis, str):
-                # テキスト形式の場合、整形して表示
-                lines = ai_analysis.split('\n')
-                content = ""
+            def clean_json_text(text):
+                """JSONの記号を完全に除去してクリーンなテキストに変換"""
+                if isinstance(text, (dict, list)):
+                    text = str(text)
                 
-                for line in lines:
+                # JSON記号を全て除去
+                text = text.replace('{', '').replace('}', '')
+                text = text.replace('[', '').replace(']', '')
+                text = text.replace('"', '').replace("'", '')
+                text = text.replace(':', '').replace(';', '')
+                text = text.replace(',', '')
+                
+                # 改行で分割してクリーンアップ
+                lines = []
+                for line in text.split('\n'):
                     line = line.strip()
-                    if not line:
-                        continue
-                    
-                    # タイトル行の判定
-                    if (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')) or
-                        line.startswith(('##', '**')) or
-                        line.startswith(('○', '●', '・', '◆', '◇')) or
-                        '：' in line[:20] or ':' in line[:20]):
-                        content += f"\n\n### 🎯 {line}\n\n"
-                    else:
-                        content += f"{line}\n\n"
+                    if line and len(line) > 2:  # 意味のある行のみ
+                        lines.append(line)
                 
-                st.markdown(content)
+                return '\n'.join(lines)
+            
+            if isinstance(ai_analysis, str):
+                # テキスト形式の分析を段組みで表示
+                clean_text = clean_json_text(ai_analysis)
+                lines = clean_text.split('\n')
+                
+                # 2段組みで表示
+                col1, col2 = st.columns(2)
+                mid_point = len(lines) // 2
+                
+                with col1:
+                    st.markdown("### 📊 分析結果 (前半)")
+                    for line in lines[:mid_point]:
+                        if line.strip():
+                            st.markdown(f"• {line}")
+                
+                with col2:
+                    st.markdown("### 📈 分析結果 (後半)")  
+                    for line in lines[mid_point:]:
+                        if line.strip():
+                            st.markdown(f"• {line}")
                 
             else:
-                # JSON形式の場合
+                # JSON形式の場合は完全にクリーンアップして段組み表示
                 try:
                     import json
                     if isinstance(ai_analysis, dict):
@@ -558,90 +579,147 @@ def integrated_workflow_content():
                     else:
                         analysis_data = json.loads(ai_analysis)
                     
-                    # 見出しとアイコンのマッピング
-                    section_icons = {
-                        "strengths": "💪",
-                        "weaknesses": "⚠️", 
-                        "opportunities": "🌟",
-                        "competitive_position": "🎯",
-                        "threats": "🚨",
-                        "analysis": "📊",
-                        "summary": "📝",
-                        "conclusion": "🔍"
-                    }
+                    # データを2つのグループに分割
+                    items = list(analysis_data.items())
+                    mid_point = len(items) // 2
                     
-                    for key, value in analysis_data.items():
-                        icon = section_icons.get(key.lower(), "📌")
-                        
-                        # セクションタイトル
-                        st.markdown(f"### {icon} {key.replace('_', ' ').title()}")
-                        
-                        if isinstance(value, list):
-                            for item in value:
-                                st.markdown(f"• {item}")
-                        else:
-                            st.markdown(value)
-                        
-                        st.markdown("---")
+                    col1, col2 = st.columns(2)
+                    
+                    # 左カラム
+                    with col1:
+                        for key, value in items[:mid_point]:
+                            st.markdown(f"### 💡 {key.replace('_', ' ').title()}")
+                            
+                            if isinstance(value, list):
+                                for item in value:
+                                    clean_item = clean_json_text(str(item))
+                                    st.markdown(f"• {clean_item}")
+                            else:
+                                clean_value = clean_json_text(str(value))
+                                st.markdown(clean_value)
+                            
+                            st.markdown("---")
+                    
+                    # 右カラム
+                    with col2:
+                        for key, value in items[mid_point:]:
+                            st.markdown(f"### 🎯 {key.replace('_', ' ').title()}")
+                            
+                            if isinstance(value, list):
+                                for item in value:
+                                    clean_item = clean_json_text(str(item))
+                                    st.markdown(f"• {clean_item}")
+                            else:
+                                clean_value = clean_json_text(str(value))
+                                st.markdown(clean_value)
+                            
+                            st.markdown("---")
                 
                 except (json.JSONDecodeError, TypeError):
-                    # JSON解析失敗時
-                    clean_text = str(ai_analysis).replace('{', '').replace('}', '').replace('"', '').replace('[', '').replace(']', '')
-                    st.markdown(clean_text)
+                    # JSON解析失敗時は完全クリーンアップ
+                    clean_text = clean_json_text(ai_analysis)
+                    lines = clean_text.split('\n')
+                    
+                    col1, col2 = st.columns(2)
+                    mid_point = len(lines) // 2
+                    
+                    with col1:
+                        st.markdown("### 📊 分析内容 (1)")
+                        for line in lines[:mid_point]:
+                            if line.strip():
+                                st.markdown(f"• {line}")
+                    
+                    with col2:
+                        st.markdown("### 📈 分析内容 (2)")
+                        for line in lines[mid_point:]:
+                            if line.strip():
+                                st.markdown(f"• {line}")
         
-        # 求める人物像（フォーマット完全解除）
+        # 👤 求める人物像（段組みレイアウト）
         required_personality = st.session_state.workflow.workflow_state.get("required_personality")
         if required_personality:
-            st.write("求める人物像")
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                padding: 2rem;
+                border-radius: 15px;
+                margin: 2rem 0;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            ">
+                <h2 style="
+                    color: white;
+                    text-align: center;
+                    margin-bottom: 2rem;
+                    font-size: 2rem;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                ">👤 求める人物像</h2>
+            </div>
+            """, unsafe_allow_html=True)
             
             if "required_personality" in required_personality:
                 personality = required_personality["required_personality"]
                 
-                if personality.get("values"):
-                    st.write("重視する価値観:")
-                    for value in personality["values"]:
-                        st.write(f"- {value}")
+                # 3段組みでバランス良く表示
+                col1, col2, col3 = st.columns(3)
                 
-                if personality.get("skills"):
-                    st.write("必要なスキル:")
-                    for skill in personality["skills"]:
-                        st.write(f"- {skill}")
+                with col1:
+                    st.markdown("### 💭 価値観・マインド")
+                    if personality.get("values"):
+                        for value in personality["values"]:
+                            st.markdown(f"• {value}")
+                    
+                    if personality.get("growth_mindset"):
+                        st.markdown("**成長姿勢**")
+                        st.markdown(personality["growth_mindset"])
                 
-                if personality.get("behavioral_traits"):
-                    st.write("求める行動特性:")
-                    for trait in personality["behavioral_traits"]:
-                        st.write(f"- {trait}")
+                with col2:
+                    st.markdown("### 🛠 スキル・能力")
+                    if personality.get("skills"):
+                        for skill in personality["skills"]:
+                            st.markdown(f"• {skill}")
+                    
+                    if personality.get("problem_solving"):
+                        st.markdown("**問題解決**")
+                        st.markdown(personality["problem_solving"])
                 
-                if personality.get("communication_style"):
-                    st.write(f"コミュニケーション: {personality['communication_style']}")
-                
-                if personality.get("leadership_style"):
-                    st.write(f"リーダーシップ: {personality['leadership_style']}")
-                
-                if personality.get("problem_solving"):
-                    st.write(f"問題解決: {personality['problem_solving']}")
-                
-                if personality.get("teamwork"):
-                    st.write(f"チームワーク: {personality['teamwork']}")
-                
-                if personality.get("growth_mindset"):
-                    st.write(f"成長姿勢: {personality['growth_mindset']}")
+                with col3:
+                    st.markdown("### 🤝 コミュニケーション")
+                    if personality.get("behavioral_traits"):
+                        st.markdown("**行動特性**")
+                        for trait in personality["behavioral_traits"]:
+                            st.markdown(f"• {trait}")
+                    
+                    if personality.get("communication_style"):
+                        st.markdown("**スタイル**")
+                        st.markdown(personality["communication_style"])
+                    
+                    if personality.get("teamwork"):
+                        st.markdown("**チームワーク**")
+                        st.markdown(personality["teamwork"])
+                    
+                    if personality.get("leadership_style"):
+                        st.markdown("**リーダーシップ**")
+                        st.markdown(personality["leadership_style"])
             
-            # 面接重要ポイント
-            if "key_interview_points" in required_personality:
-                st.write("面接で重視されるポイント:")
-                for i, point in enumerate(required_personality["key_interview_points"], 1):
-                    st.write(f"{i}. {point}")
+            # 面接重要ポイントと成功要因を2段組みで
+            col1, col2 = st.columns(2)
             
-            # 成功要因
-            if "success_factors" in required_personality:
-                st.write("この企業で成功する要因:")
-                for factor in required_personality["success_factors"]:
-                    st.write(f"- {factor}")
+            with col1:
+                if "key_interview_points" in required_personality:
+                    st.markdown("### ❓ 面接重要ポイント")
+                    for i, point in enumerate(required_personality["key_interview_points"], 1):
+                        st.markdown(f"**{i}.** {point}")
+            
+            with col2:
+                if "success_factors" in required_personality:
+                    st.markdown("### 🏆 成功要因")
+                    for factor in required_personality["success_factors"]:
+                        st.markdown(f"• {factor}")
             
             # その他の詳細情報があれば表示
             if isinstance(required_personality, str) and not required_personality.get("required_personality"):
-                st.write(required_personality)
+                st.markdown("### 📝 詳細情報")
+                st.markdown(required_personality)
         
         st.session_state.workflow_step = 2
         
