@@ -19,7 +19,7 @@ class ClaudeClient(AIClient):
     def generate_response(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         try:
             message = self.client.messages.create(
-                model="claude-3-sonnet-20240229",
+                model="claude-3-5-sonnet-20241022",
                 max_tokens=2000,
                 system=system_prompt or "You are a helpful assistant for job hunting support.",
                 messages=[{"role": "user", "content": prompt}]
